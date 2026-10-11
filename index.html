@@ -234,16 +234,14 @@ textarea.in{min-height:64px;resize:vertical}
     </div>
 
     <div id="loginBox" class="panel" hidden>
-      <div class="toggle2" id="authMode" style="margin-bottom:6px"><button data-m="in" aria-pressed="true">دخول</button><button data-m="up" aria-pressed="false">حساب جديد</button></div>
-      <div id="upName" hidden><label class="f" for="aName">الاسم الكامل</label><input class="in" id="aName" autocomplete="name"></div>
-      <label class="f" for="aEmail">الإيميل</label>
-      <input class="in ltr" id="aEmail" type="email" autocomplete="username" inputmode="email">
+      <h3 style="margin-bottom:0">الدخول</h3>
+      <label class="f" for="aEmail">اسم المستخدم</label>
+      <input class="in ltr" id="aEmail" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="khalid">
       <label class="f" for="aPass">كلمة السر</label>
       <input class="in ltr" id="aPass" type="password" autocomplete="current-password">
       <div class="err" id="aErr" hidden></div>
       <button class="btn primary big" id="aGo" style="margin-top:14px">دخول</button>
-      <p class="hint" id="upHint" hidden style="margin-bottom:0">الحساب الجديد خاصو يكون المدير ولا الشاف زادك من قبل. أول حساب كيتصاوب هو حساب المدير.</p>
-      <button class="btn link" id="forgot" style="margin-top:8px">نسيتي كلمة السر؟</button>
+      <p class="hint" style="margin-bottom:0">نسيتي كلمة السر؟ طلب من الشاف ولا المدير يبدلها ليك. ما عندكش حساب؟ الشاف ديالك هو اللي كيصاوبو.</p>
     </div>
 
     <div id="newPassBox" class="panel" hidden>
@@ -448,7 +446,12 @@ const ls = {get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.p
 let tt; function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2800)}
 function errMsg(e){
   const m=(e&&(e.message||e.error_description))||String(e||"");
-  if(/Invalid login/i.test(m))return "الإيميل ولا كلمة السر غالطين";
+  if(/Invalid login/i.test(m))return "اسم المستخدم ولا كلمة السر غالطين";
+  if(/USERNAME_TAKEN/.test(m))return "اسم المستخدم هادا ديجا مستعمل، اختار واحد آخر";
+  if(/BAD_USERNAME/.test(m))return "اسم المستخدم: حروف لاتينية صغيرة وأرقام فقط (3 حتى 30)، بلا فراغات";
+  if(/BAD_PASSWORD/.test(m))return "كلمة السر خاصها 6 حروف على الأقل";
+  if(/NOT_ALLOWED/.test(m))return "ما عندكش الصلاحية لهاد العملية";
+  if(/create_member|set_member_password/.test(m)&&/does not exist|Could not find/i.test(m))return "خاصك تدوز ملف التحديث hisab-ftth-update-1.sql فـ Supabase";
   if(/Email not confirmed/i.test(m))return "خاصك تأكد الإيميل ديالك من الرسالة اللي جاتك";
   if(/already registered|already been registered/i.test(m))return "هاد الإيميل عندو حساب ديجا";
   if(/Password should be/i.test(m))return "كلمة السر خاصها 6 حروف على الأقل";
@@ -540,10 +543,9 @@ function showAuth(box){
   $("#loading").hidden=true;$("#app").hidden=true;$("#authScreen").hidden=false;
   ["setupBox","loginBox","newPassBox","waitBox"].forEach(id=>$("#"+id).hidden=id!==box);
 }
-let authMode="in";
-function setAuthMode(m){authMode=m;document.querySelectorAll("#authMode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===m));
-  $("#upName").hidden=m!=="up";$("#upHint").hidden=m!=="up";$("#forgot").hidden=m==="up";$("#aGo").textContent=m==="up"?"إنشاء الحساب":"دخول";
-  $("#aPass").autocomplete=m==="up"?"new-password":"current-password";$("#aErr").hidden=true}
+const DOMAIN="@hisab.app";
+const toEmail=u=>{u=String(u||"").trim().toLowerCase();return u.includes("@")?u:u+DOMAIN};
+const uname=p=>{const e=(p&&p.email)||"";return e.endsWith(DOMAIN)?e.slice(0,-DOMAIN.length):e};
 async function boot(){
   const c=cfg();
   if(!c||!window.supabase){ if(!window.supabase){$("#loading").innerHTML='<div class="auth"><div class="panel">ما قدرش يتحمل التطبيق. تأكد من الإنترنت وعاود حل الصفحة.</div></div>';return} showAuth("setupBox");return }
@@ -943,24 +945,20 @@ function closeModal(){$("#modal").hidden=true;$("#modalBox").innerHTML=""}
 $("#modal").addEventListener("click",e=>{if(e.target.id==="modal"||e.target.closest("[data-close]"))closeModal()});
 
 /* ---------------- TEAM ---------------- */
-async function createAccount({full_name,email,password,role,team_id}){
-  email=email.trim().toLowerCase();
-  if(password.length<6) throw new Error("كلمة السر خاصها 6 حروف على الأقل");
-  await S.sb.from("invites").delete().eq("email",email);
-  const {error:e1}=await S.sb.from("invites").insert({email,full_name,role,team_id}); if(e1) throw e1;
-  const c=cfg(); const tmp=window.supabase.createClient(c.url,c.key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:"hf-tmp-"+Date.now()}});
-  const {data,error}=await tmp.auth.signUp({email,password,options:{data:{full_name}}});
-  if(error){ if(/already registered/i.test(error.message)) throw new Error("هاد الإيميل عندو حساب ديجا. إلا كان حساب بلا دور، تقدر تفعلو من «حسابات بلا إيكيب»."); throw error }
-  if(data&&data.user&&data.user.identities&&data.user.identities.length===0) throw new Error("هاد الإيميل عندو حساب ديجا");
+async function createAccount({full_name,username,password,role,team_id}){
+  const {error}=await S.sb.rpc("create_member",{p_username:username,p_password:password,p_full_name:full_name,p_role:role,p_team:team_id});
+  if(error) throw error;
   await loadBase();
-  return !data.session; // true => confirmation email needed
 }
+const slug=n=>String(n||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim().split(/\s+/)[0].replace(/[^a-z0-9._-]/g,"").slice(0,20);
+const randPass=()=>Math.random().toString(36).slice(2,6)+Math.floor(1000+Math.random()*9000);
 function memberRow(p,tid){
   const mTot=S.month.rows.filter(e=>e.tech_id===p.id).reduce((s,e)=>s+amtOf(e),0);
   const canToggle=isAdmin()||(isChef()&&p.role==="tech");
   return `<div class="item"><div class="avatar">${esc(initials(p.full_name||p.email))}</div>
-    <div class="grow"><b>${esc(p.full_name||"-")}</b> <span class="badge ${p.role==="chef"?"ok":"draft"}">${ROLE_AR[p.role]}</span><div class="hint ltr" style="text-align:right">${esc(p.email||"")}</div>
+    <div class="grow"><b>${esc(p.full_name||"-")}</b> <span class="badge ${p.role==="chef"?"ok":"draft"}">${ROLE_AR[p.role]}</span><div class="hint ltr" style="text-align:right">${esc(uname(p))}</div>
     <div class="small">هاد الشهر: <b class="num ltr">${money(mTot)}</b>${p.active?"":' · <span style="color:var(--danger)">موقوف</span>'}</div></div>
+    ${(canToggle&&p.id!==S.me.id)?`<button class="btn sm" data-pass="${p.id}" title="بدل كلمة السر">🔑</button>`:""}
     ${isAdmin()?`<button class="btn sm" data-editp="${p.id}">تعديل</button>`:""}
     ${canToggle&&p.id!==S.me.id?`<label class="switch" title="مفعّل"><input type="checkbox" data-active="${p.id}" ${p.active?"checked":""} aria-label="تفعيل ${esc(p.full_name||"")}"><span></span></label>`:""}
   </div>`;
@@ -971,11 +969,12 @@ function renderTeam(){
   if(isChef()){
     const t=teamById(S.me.team_id), ms=S.profiles.filter(p=>p.team_id===t.id);
     h=`<div class="panel-head"><h2 style="margin:6px 2px">${esc(t.name)}</h2><button class="btn accent sm" data-addmember="${t.id}" data-role="tech">+ تقني جديد</button></div>
-      <div class="panel">${ms.map(p=>memberRow(p,t.id)).join("")||'<p class="hint">ما كاين حتى عضو.</p>'}</div>${invitesHtml(S.invites.filter(i=>i.team_id===t.id))}`;
+      <div class="panel">${ms.map(p=>memberRow(p,t.id)).join("")||'<p class="hint">ما كاين حتى عضو.</p>'}</div>
+      <p class="hint">كل تقني كيدخل باسم المستخدم وكلمة السر اللي عطيتيه. إلا نسا كلمة السر، ضغط 🔑 حدا السمية ديالو.</p>`;
   }else{
     const orphans=S.profiles.filter(p=>p.role==="none"||(!p.team_id&&p.role!=="admin"));
     h=`<div class="panel-head"><h2 style="margin:6px 2px">الإيكيبات (${S.teams.length})</h2><button class="btn accent sm" id="addTeam">+ إيكيب جديدة</button></div>`;
-    if(!S.teams.length) h+=`<div class="empty">بدا بزيادة أول إيكيب، من بعد زيد الشاف ديالها.</div>`;
+    if(!S.teams.length) h+=`<div class="empty">ضغط «+ إيكيب جديدة» وزيد الإيكيب مع الشاف ديالها فمرة وحدة.</div>`;
     S.teams.forEach(t=>{const ms=S.profiles.filter(p=>p.team_id===t.id), mTot=S.month.rows.filter(e=>e.team_id===t.id).reduce((s,e)=>s+amtOf(e),0);
       const chefs=ms.filter(p=>p.role==="chef").map(p=>p.full_name).join("، ");
       h+=`<details class="panel"><summary class="row" style="cursor:pointer;list-style:none">${t.logo_url?`<img class="team-logo" src="${esc(t.logo_url)}" alt="">`:`<div class="avatar" style="width:44px;height:44px;border-radius:10px">${esc(initials(t.name))}</div>`}
@@ -983,49 +982,69 @@ function renderTeam(){
         <div style="margin-top:10px">${ms.map(p=>memberRow(p,t.id)).join("")||'<p class="hint">ما كاين حتى عضو.</p>'}</div>
         <div class="row wrap" style="margin-top:10px"><button class="btn sm accent" data-addmember="${t.id}" data-role="chef">+ شاف</button><button class="btn sm" data-addmember="${t.id}" data-role="tech">+ تقني</button><button class="btn sm" data-editteam="${t.id}">تعديل الإيكيب</button><button class="btn sm" data-gocps="${t.id}">CPS واللوغو</button></div>
       </details>`});
-    if(orphans.length) h+=`<div class="panel"><h3>حسابات بلا إيكيب</h3><p class="hint" style="margin-top:0">ناس صاوبو حساب بلا دعوة. عطيهم دور وإيكيب باش يدخلو.</p>${orphans.map(p=>`<div class="item"><div class="avatar">${esc(initials(p.full_name||p.email))}</div><div class="grow"><b>${esc(p.full_name||"-")}</b><div class="hint ltr" style="text-align:right">${esc(p.email)}</div></div><button class="btn sm" data-editp="${p.id}">تعيين</button></div>`).join("")}</div>`;
-    h+=invitesHtml(S.invites);
+    if(orphans.length) h+=`<div class="panel"><h3>حسابات بلا إيكيب</h3><p class="hint" style="margin-top:0">ناس صاوبو حساب بلا دعوة. عطيهم دور وإيكيب باش يدخلو.</p>${orphans.map(p=>`<div class="item"><div class="avatar">${esc(initials(p.full_name||p.email))}</div><div class="grow"><b>${esc(p.full_name||"-")}</b><div class="hint ltr" style="text-align:right">${esc(uname(p))}</div></div><button class="btn sm" data-editp="${p.id}">تعيين</button></div>`).join("")}</div>`;
   }
   $("#v-team").innerHTML=h;
+}
+function memberFields(prefix,role,showRole){
+  return `<label class="f" for="${prefix}N">الاسم الكامل (بالحروف اللاتينية)</label><input class="in" id="${prefix}N" name="${prefix}full_name" ${role?"required":""} placeholder="KHALID EL KHADIMI" data-slugto="${prefix}U">
+    <div class="two"><div><label class="f" for="${prefix}U">اسم المستخدم</label><input class="in ltr" id="${prefix}U" name="${prefix}username" ${role?"required":""} autocapitalize="none" autocorrect="off" spellcheck="false"></div>
+    <div><label class="f" for="${prefix}P">كلمة السر</label><input class="in ltr" id="${prefix}P" name="${prefix}password" type="text" minlength="6" ${role?"required":""} autocomplete="off" value="${randPass()}"></div></div>
+    ${showRole?`<label class="f" for="${prefix}R">الدور</label><select class="in" id="${prefix}R" name="${prefix}role"><option value="chef" ${role==="chef"?"selected":""}>شاف إيكيب</option><option value="tech" ${role==="tech"?"selected":""}>تقني</option></select>`:""}`;
 }
 function openAddMember(tid,role){
   const t=teamById(tid);
   modal(`<form><h3>${role==="chef"?"شاف جديد":"تقني جديد"} · ${esc(t.name)}</h3>
-    <label class="f" for="mN">الاسم الكامل (بالحروف اللاتينية)</label><input class="in" id="mN" name="full_name" required>
-    <label class="f" for="mE">الإيميل</label><input class="in ltr" id="mE" name="email" type="email" required autocomplete="off">
-    <label class="f" for="mP">كلمة السر (عطيها ليه باش يدخل)</label><input class="in ltr" id="mP" name="password" type="text" minlength="6" required autocomplete="off" value="${Math.random().toString(36).slice(2,6)}${Math.floor(1000+Math.random()*9000)}">
-    ${isAdmin()?`<label class="f" for="mR">الدور</label><select class="in" id="mR" name="role"><option value="chef" ${role==="chef"?"selected":""}>شاف إيكيب</option><option value="tech" ${role==="tech"?"selected":""}>تقني</option></select>`:`<input type="hidden" name="role" value="tech">`}
+    ${memberFields("",role,isAdmin())}
     <div class="err" hidden></div>
     <div class="row" style="margin-top:14px"><button type="button" class="btn grow" data-close>إلغاء</button><button type="submit" class="btn primary grow">إنشاء الحساب</button></div></form>`,
-  async fd=>{const o=Object.fromEntries(fd);const conf=await createAccount({...o,team_id:tid});
-    renderTeam();
-    showCreds(o.email,o.password,conf);
+  async fd=>{const o=Object.fromEntries(fd); o.role=isAdmin()?o.role:"tech"; o.username=o.username.trim().toLowerCase();
+    await createAccount({...o,team_id:tid}); renderTeam(); showCreds(o.full_name,o.username,o.password);
   });
 }
-function showCreds(email,pass,conf){
-  setTimeout(()=>{modal(`<h3>تصاوب الحساب ✓</h3><p class="hint">صيفط هاد المعلومات للشخص باش يدخل للتطبيق:</p>
-   <div class="panel ltr" style="text-align:left"><div>Email : <b>${esc(email)}</b></div><div>Mot de passe : <b>${esc(pass)}</b></div><div class="small">${esc(location.href.split("#")[0])}</div></div>
-   ${conf?'<p class="warn">Supabase باقي كيطلب تأكيد الإيميل: خاص الشخص يفتح الرسالة اللي جاتو ويأكد قبل ما يدخل. (تقدر توقف هادشي من Supabase › Authentication › Sign In / Providers › Email › Confirm email)</p>':""}
+function showCreds(name,user,pass,title){
+  const link=location.href.split("#")[0];
+  setTimeout(()=>{modal(`<h3>${title||"تصاوب الحساب ✓"}</h3><p class="hint">صيفط هاد المعلومات لـ ${esc(name)} باش يدخل:</p>
+   <div class="panel ltr" style="text-align:left"><div>Utilisateur : <b>${esc(user)}</b></div><div>Mot de passe : <b>${esc(pass)}</b></div><div class="small" style="word-break:break-all">${esc(link)}</div></div>
    <div class="row"><button class="btn grow" id="copyCreds">نسخ</button><button class="btn primary grow" data-close>مزيان</button></div>`);
-   $("#copyCreds").onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(`Hisab FTTH\n${location.href.split("#")[0]}\nEmail : ${email}\nMot de passe : ${pass}`).then(()=>toast("تنسخ"))}},60);
+   $("#copyCreds").onclick=()=>{const txt=`Hisab FTTH\n${link}\nUtilisateur : ${user}\nMot de passe : ${pass}`;
+     (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast("تنسخ")).catch(()=>toast("ما قدرش ينسخ، كتبهم يدوياً"))}},60);
+}
+function openPassForm(p){
+  modal(`<form><h3>كلمة سر جديدة · ${esc(p.full_name||uname(p))}</h3>
+    <label class="f" for="rpP">كلمة السر الجديدة</label><input class="in ltr" id="rpP" name="p" type="text" minlength="6" required autocomplete="off" value="${randPass()}">
+    <div class="err" hidden></div>
+    <div class="row" style="margin-top:14px"><button type="button" class="btn grow" data-close>إلغاء</button><button type="submit" class="btn primary grow">حفظ</button></div></form>`,
+  async fd=>{const pw=fd.get("p");const {error}=await S.sb.rpc("set_member_password",{p_user:p.id,p_password:pw});if(error)throw error;
+    showCreds(p.full_name||uname(p),uname(p),pw,"تبدلات كلمة السر ✓")});
 }
 function openTeamForm(t){
   modal(`<form><h3>${t?"تعديل الإيكيب":"إيكيب جديدة"}</h3>
     <label class="f" for="tN">اسم الإيكيب</label><input class="in" id="tN" name="name" required value="${esc(t?t.name:"")}">
     <label class="f" for="tZ">المنطقة</label><input class="in" id="tZ" name="zone" value="${esc(t?t.zone||"":"")}">
     <label class="f" for="tC">اسم الشركة فالرابور (اختياري)</label><input class="in" id="tC" name="company" value="${esc(t?t.company||"":"")}">
+    ${t?"":`<h3 style="margin:18px 0 0">الشاف ديال هاد الإيكيب</h3><p class="hint" style="margin:2px 0 0">تقدر تخليها خاوية وتزيدو من بعد.</p>${memberFields("c_",null,false)}`}
     <div class="err" hidden></div>
     <div class="row" style="margin-top:14px">${t&&isAdmin()?`<button type="button" class="btn danger" id="delTeam">حذف</button>`:""}<button type="button" class="btn grow" data-close>إلغاء</button><button type="submit" class="btn primary grow">حفظ</button></div></form>`,
-  async fd=>{const o=Object.fromEntries(fd);
-    const r=t?await S.sb.from("teams").update(o).eq("id",t.id):await S.sb.from("teams").insert(o);
-    if(r.error) throw r.error; await loadBase(); renderHeader(); show(S.view,true); toast("تحفظت الإيكيب")});
+  async fd=>{const all=Object.fromEntries(fd), o={name:all.name,zone:all.zone,company:all.company};
+    const chef={full_name:(all.c_full_name||"").trim(),username:(all.c_username||"").trim().toLowerCase(),password:all.c_password||""};
+    const wantChef=!t&&(chef.full_name||chef.username);
+    if(wantChef&&(!chef.full_name||!chef.username)) throw new Error("كمل معلومات الشاف (الاسم واسم المستخدم) ولا خليهم خاويين");
+    if(t){const r=await S.sb.from("teams").update(o).eq("id",t.id); if(r.error) throw r.error; await loadBase(); renderHeader(); show(S.view,true); toast("تحفظت الإيكيب"); return}
+    const r=await S.sb.from("teams").insert(o).select().single(); if(r.error) throw r.error;
+    if(wantChef){
+      try{await createAccount({...chef,role:"chef",team_id:r.data.id})}
+      catch(e){await loadBase(); show(S.view,true); throw new Error("تصاوبات الإيكيب، ولكن الشاف ما تصاوبش: "+errMsg(e)+". زيدو من «+ شاف».")}
+    }
+    await loadBase(); renderHeader(); show(S.view,true);
+    if(wantChef) showCreds(chef.full_name,chef.username,chef.password,"تصاوبات الإيكيب والشاف ✓"); else toast("تصاوبات الإيكيب")});
   const d=$("#delTeam"); if(d) d.onclick=async()=>{
     if(!d.dataset.armed){d.dataset.armed="1";d.textContent="أكد الحذف (كيتحذفو حتى الطلبيات ديالها)";return}
     const {error}=await S.sb.from("teams").delete().eq("id",t.id); if(error){toast(errMsg(error));return}
     closeModal();await refreshAll();toast("تحذفت الإيكيب")};
 }
 function openProfileForm(p){
-  modal(`<form><h3>${esc(p.full_name||p.email)}</h3><p class="hint ltr" style="text-align:right;margin:0">${esc(p.email)}</p>
+  modal(`<form><h3>${esc(p.full_name||p.email)}</h3><p class="hint ltr" style="text-align:right;margin:0">${esc(uname(p))}</p>
     <label class="f" for="pN">الاسم</label><input class="in" id="pN" name="full_name" value="${esc(p.full_name||"")}">
     <label class="f" for="pR">الدور</label><select class="in" id="pR" name="role">${["chef","tech","admin","none"].map(r=>`<option value="${r}" ${p.role===r?"selected":""}>${ROLE_AR[r]}</option>`).join("")}</select>
     <label class="f" for="pT">الإيكيب</label><select class="in" id="pT" name="team_id"><option value="">بلا إيكيب</option>${teamOptions(p.team_id)}</select>
@@ -1046,7 +1065,7 @@ function renderSettings(){
   const t=teamById(tid), canEditTeam=isAdmin()||isChef();
   let h=`<h2>${isTech()?"حسابي":"الإعدادات"}</h2>
   <div class="panel"><h3>الحساب</h3>
-    <div class="row"><div class="avatar">${esc(initials(S.me.full_name||S.me.email))}</div><div class="grow"><b>${esc(S.me.full_name||"")}</b><div class="hint ltr" style="text-align:right">${esc(S.me.email||"")}</div></div></div>
+    <div class="row"><div class="avatar">${esc(initials(S.me.full_name||S.me.email))}</div><div class="grow"><b>${esc(S.me.full_name||"")}</b><div class="hint ltr" style="text-align:right">${esc(uname(S.me))}</div></div></div>
     <label class="f" for="myName">الاسم (بالحروف اللاتينية، كيبان فالرابور)</label><div class="row"><input class="in grow" id="myName" value="${esc(S.me.full_name||"")}"><button class="btn" id="saveName">حفظ</button></div>
     <label class="f">لغة العمليات</label><div class="toggle2 lang"><button data-lang="ar">عربية</button><button data-lang="fr">Français</button></div>
     <div class="row wrap" style="margin-top:14px"><button class="btn grow" id="chPass">بدل كلمة السر</button><button class="btn danger grow" data-logout>خروج</button></div>
@@ -1150,6 +1169,7 @@ document.addEventListener("click",async e=>{
   if(b=g("[data-editteam]")){openTeamForm(teamById(b.dataset.editteam));return}
   if(b=g("[data-addmember]")){openAddMember(b.dataset.addmember,b.dataset.role);return}
   if(b=g("[data-editp]")){openProfileForm(profById(b.dataset.editp));return}
+  if(b=g("[data-pass]")){openPassForm(profById(b.dataset.pass));return}
   if(b=g("[data-gocps]")){S.setTeam=b.dataset.gocps;show("settings");return}
   if(b=g("[data-uninv]")){const {error}=await S.sb.from("invites").delete().eq("email",b.dataset.uninv);if(error)toast(errMsg(error));else{await loadBase();renderTeam()}return}
   if(b=g(".toggle2.lang button")){S.lang=b.dataset.lang;ls.set("hf.lang",S.lang);document.querySelectorAll(".toggle2.lang button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.lang===S.lang));
@@ -1190,7 +1210,9 @@ document.addEventListener("change",e=>{
   else if(e.target.dataset.active){const pid=e.target.dataset.active,on=e.target.checked;
     S.sb.from("profiles").update({active:on}).eq("id",pid).then(async({error})=>{if(error){toast(errMsg(error));e.target.checked=!on;return}await loadBase();toast(on?"تفعّل الحساب":"توقف الحساب")})}
 });
-document.addEventListener("input",e=>{if(e.target.id==="cpsSearch")drawCps()});
+document.addEventListener("input",e=>{if(e.target.id==="cpsSearch")drawCps();
+  const st=e.target.dataset&&e.target.dataset.slugto; if(st){const u=document.getElementById(st); if(u&&!u.dataset.touched) u.value=slug(e.target.value)}
+  if(e.target.name&&/username$/.test(e.target.name)){e.target.dataset.touched="1";const v=e.target.value.toLowerCase().replace(/\s+/g,"");if(v!==e.target.value)e.target.value=v}});
 function findEntry(id){return S.today.concat(S.month.rows,S.hist.rows).find(x=>x.id===id)}
 
 /* editor events */
@@ -1219,26 +1241,14 @@ $("#search").addEventListener("input",e=>{
 });
 
 /* auth events */
-document.querySelector("#authMode").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setAuthMode(b.dataset.m)});
 $("#aGo").onclick=async()=>{
-  const em=$("#aEmail").value.trim(), pw=$("#aPass").value, er=$("#aErr"); er.hidden=true; const b=$("#aGo"); b.disabled=true;
-  try{
-    if(authMode==="up"){
-      const {data,error}=await S.sb.auth.signUp({email:em,password:pw,options:{data:{full_name:$("#aName").value.trim()},emailRedirectTo:location.href.split("#")[0]}});
-      if(error) throw error;
-      if(!data.session){er.textContent="تصاوب الحساب. حل الإيميل ديالك وأكد الحساب، من بعد دخل.";er.style.color="var(--ok)";er.hidden=false;setAuthMode("in");return}
-      S.user=data.user; await enter();
-    }else{
-      const {data,error}=await S.sb.auth.signInWithPassword({email:em,password:pw}); if(error) throw error;
-      S.user=data.user; await enter();
-    }
-  }catch(e){er.style.color="";er.textContent=errMsg(e);er.hidden=false}finally{b.disabled=false}
+  const em=toEmail($("#aEmail").value), pw=$("#aPass").value, er=$("#aErr"); er.hidden=true; const b=$("#aGo");
+  if(!$("#aEmail").value.trim()||!pw){er.textContent="كتب اسم المستخدم وكلمة السر";er.hidden=false;return}
+  b.disabled=true;
+  try{const {data,error}=await S.sb.auth.signInWithPassword({email:em,password:pw}); if(error) throw error; S.user=data.user; await enter()}
+  catch(e){er.textContent=errMsg(e);er.hidden=false}finally{b.disabled=false}
 };
 $("#aPass").addEventListener("keydown",e=>{if(e.key==="Enter")$("#aGo").click()});
-$("#forgot").onclick=async()=>{const em=$("#aEmail").value.trim(), er=$("#aErr");
-  if(!em){er.textContent="كتب الإيميل ديالك الفوق أولا";er.hidden=false;return}
-  const {error}=await S.sb.auth.resetPasswordForEmail(em,{redirectTo:location.href.split("#")[0]});
-  er.style.color=error?"":"var(--ok)"; er.textContent=error?errMsg(error):"صيفطنا ليك رسالة فالإيميل باش تبدل كلمة السر."; er.hidden=false};
 $("#npGo").onclick=async()=>{const {error}=await S.sb.auth.updateUser({password:$("#np1").value});
   if(error){$("#npErr").textContent=errMsg(error);$("#npErr").hidden=false;return}
   history.replaceState(null,"",location.pathname+location.search);toast("تبدلات كلمة السر");const {data}=await S.sb.auth.getUser();S.user=data.user;enter()};
