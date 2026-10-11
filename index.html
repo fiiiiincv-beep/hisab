@@ -326,97 +326,7 @@ textarea.in{min-height:64px;resize:vertical}
 const SUPABASE_URL = "https://vjplelwaqkxuiihjlgcv.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqcGxlbHdhcWt4dWlpaGpsZ2N2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE3NDQxMDIsImV4cCI6MjEwNzMyMDEwMn0.l4-AR6ToVhRGmzNpsKd3i7E-vTQhtBKlQYm5hivN2o4";
 
-const CPS = [
- ["1GC1","GC","Ouverture tranchée","Accès/Transmission – Ouverture tranchée","ml",15],
- ["1GC2","GC","Micro-tranchée mécanisée 0,10 m","Génie civil en accotements de routes très étroit avec micro-tranchées mécanisées 0,10 m","ml",50],
- ["2GC1","GC","Canalisation type CPS1","Construction canalisation type CPS1","ml",12],
- ["2GC2","GC","Canalisation type CPS2","Construction canalisation type CPS2","ml",17],
- ["1CF10","CF","Pose câble FO pleine terre","Pose câble à fibres optiques toute capacité en pleine terre","ml",2],
- ["1CF11","CF","Pose câble FO conduite / PEHD","Pose câble à fibres optiques toute capacité en conduite ou sous PEHD","ml",2],
- ["1CF12","CF","Pose câble FO façade / immeuble","Pose câble à fibres optiques toute capacité en façade ou immeuble","ml",2.4],
- ["1CF13","CF","Pose câble FO aérien","Pose câble à fibres optiques toute capacité en aérien","ml",2.2],
- ["1CF20","CF","Dépose câble FO aérien","Dépose d'un câble à fibres optiques toute capacité en aérien","km",600],
- ["1CF21","CF","Dépose câble FO conduite/façade/imm.","Dépose d'un câble à fibres optiques toute capacité en conduite, façade, immeuble","km",600],
- ["1CF30","CF","Protection tubes PEHD","Protection des tubes PEHD supportant des câbles FO (prestations + fourniture)","ml",10],
- ["1CF31","CF","Protection câbles FO pleine terre","Protection de câbles FO plein terre (prestations + fourniture)","ml",10],
- ["2CF10","CF","Joint câble 16 FO","Confection et raccordement d'un joint pour câble 16 FO","U",150],
- ["2CF11","CF","Joint câble 24 FO","Confection et raccordement d'un joint pour câble 24 FO","U",230],
- ["2CF12","CF","Joint câble 56 FO","Confection et raccordement d'un joint pour câble 56 FO","U",700],
- ["2CF13","CF","Joint câble 64 FO","Confection et raccordement d'un joint pour câble 64 FO","U",800],
- ["2CF14","CF","Joint câble 96 FO","Confection et raccordement d'un joint pour câble 96 FO","U",1272],
- ["2CF15","CF","Joint câble 144 FO","Confection et raccordement d'un joint pour câble 144 FO","U",1600],
- ["2CF20","CF","Splitter 4 FO","Fixation et raccordement 4 FO (splitter)","U",90],
- ["2CF21","CF","Splitter 8 FO","Fixation et raccordement 8 FO (splitter)","U",120],
- ["2CF22","CF","Splitter 16 FO","Fixation et raccordement 16 FO (splitter)","U",250],
- ["2CF23","CF","Splitter 32 FO","Fixation et raccordement 32 FO (splitter)","U",420],
- ["2CF30","CF","Dérivation 1 à 2 fibres","Dérivation et raccordement de 01 à 02 fibres","U",105],
- ["2CF31","CF","Dérivation 4 fibres","Dérivation et raccordement de 04 fibres","U",110],
- ["2CF32","CF","Dérivation 8 fibres","Dérivation et raccordement de 08 fibres","U",150],
- ["2CF33","CF","Dérivation 16 fibres","Dérivation et raccordement de 16 fibres","U",300],
- ["2CF34","CF","Dérivation 24 fibres","Dérivation et raccordement de 24 fibres","U",450],
- ["2CF35","CF","Dérivation 56 fibres","Dérivation et raccordement de 56 fibres","U",850],
- ["3CF1","CF","Répartiteur optique (bâti ODF)","Installation et fixation répartiteur optique (bâti ODF)","U",400],
- ["3CF2","CF","Coffret polyester à clé","Installation d'un coffret polyester à clé adapté au besoin y compris sa fourniture","U",350],
- ["3CF3","CF","Jarretière optique monomode","Installation jarretière optique monomode tout type","U",12],
- ["3CF40","CF","Tiroir / tête de câble 4 FO","Pose et raccordement d'un tiroir optique / tête de câble à 4 FO","U",150],
- ["3CF41","CF","Tiroir / tête de câble 8 FO","Pose et raccordement d'un tiroir optique / tête de câble à 8 FO","U",180],
- ["3CF42","CF","Tiroir / tête de câble 16 FO","Pose et raccordement d'un tiroir optique / tête de câble à 16 FO","U",280],
- ["3CF43","CF","Tiroir / tête de câble 24 FO","Pose et raccordement d'un tiroir optique / tête de câble à 24 FO","U",450],
- ["3CF44","CF","Tiroir optique 56 FO","Pose et raccordement d'un tiroir optique à 56 FO","U",900],
- ["3CF45","CF","Tiroir optique 64 FO","Pose et raccordement d'un tiroir optique à 64 FO","U",960],
- ["3CF46","CF","Tiroir optique 96 FO","Pose et raccordement d'un tiroir optique à 96 FO","U",1100],
- ["3CF47","CF","Tiroir optique 144 FO","Pose et raccordement d'un tiroir optique à 144 FO","U",1500],
- ["3CF50","CF","PCO 4 FO","Pose et raccordement d'un point de concentration optique PCO à 4 FO","U",110],
- ["3CF51","CF","PCO 8 FO","Pose et raccordement d'un point de concentration optique PCO à 8 FO","U",170],
- ["3CF52","CF","Ré-étiquetage PCO existant","Ré-étiquetage PCO existant","U",10],
- ["3CF53","CF","Fixation PCO existant","Fixation PCO existant","U",10],
- ["INFO1","INFO","Ligne neuve + installation intérieure","Construction et mise en service d'une ligne neuve d'un abonné y compris l'installation intérieure","U",125],
- ["INFO2","INFO","Ligne neuve sans installation intérieure","Construction et mise en service d'une ligne neuve d'un abonné non compris l'installation intérieure","U",90],
- ["INFO3","INFO","Mutation simple (câble existant)","Mutation simple et mise en service d'une ligne FTTH avec reprise de câble de branchement FO existant","U",70],
- ["INFO4","INFO","Mutation + nouveau câble","Mutation et mise en service d'une ligne d'abonné avec pose de nouveau câble de branchement FO","U",90],
- ["INFO5","INFO","Point d'accès avec câble","Installation, câblage et mise en service d'un point d'accès avec câble","U",90],
- ["SAVFO1","SAVFO","SAV Standard – câble existant","Normalisation d'une ligne d'abonné y compris l'installation intérieure avec reprise de câble de branchement existant (SAV Standard)","U",90],
- ["SAVFO2","SAVFO","SAV Standard – nouveau câble","Normalisation d'une ligne d'abonné y compris l'installation intérieure avec pose d'un nouveau câble de branchement (SAV Standard)","U",90],
- ["SAVFO3","SAVFO","SAV Premium – câble existant","Normalisation d'une ligne d'abonné y compris l'installation intérieure avec reprise de câble de branchement existant (SAV Premium)","U",90],
- ["SAVFO4","SAVFO","SAV Premium – nouveau câble","Normalisation d'une ligne d'abonné y compris l'installation intérieure avec pose d'un nouveau câble de branchement (SAV Premium)","U",90]
-].map(([code,group,label,desig,unit,price])=>({code,group,label,desig,unit,price}));
-/* Arabic labels: [short, full] */
-const AR = {
- "1GC1":["حفر خندق","فتح خندق (ولوج / نقل)"],
- "1GC2":["خندق صغير آلي 0,10 م","أشغال مدنية في حواشي الطرق الضيقة جداً بخنادق صغيرة آلية عرضها 0,10 م"],
- "2GC1":["قناة من نوع CPS1","إنشاء قناة من نوع CPS1"],
- "2GC2":["قناة من نوع CPS2","إنشاء قناة من نوع CPS2"],
- "1CF10":["مد كابل الألياف تحت التراب","مد كابل ألياف بصرية بأي سعة مدفون مباشرة في التراب"],
- "1CF11":["مد كابل الألياف فالقناة / PEHD","مد كابل ألياف بصرية بأي سعة داخل قناة أو أنبوب PEHD"],
- "1CF12":["مد كابل الألياف فالواجهة / العمارة","مد كابل ألياف بصرية بأي سعة على الواجهة أو داخل العمارة"],
- "1CF13":["مد كابل الألياف هوائي","مد كابل ألياف بصرية بأي سعة في الهواء (على الأعمدة)"],
- "1CF20":["نزع كابل الألياف الهوائي","نزع كابل ألياف بصرية بأي سعة من الهواء"],
- "1CF21":["نزع كابل الألياف من القناة / الواجهة / العمارة","نزع كابل ألياف بصرية بأي سعة من القناة أو الواجهة أو العمارة"],
- "1CF30":["حماية أنابيب PEHD","حماية أنابيب PEHD الحاملة لكابلات الألياف (الخدمة + التوريد)"],
- "1CF31":["حماية كابل الألياف تحت التراب","حماية كابلات الألياف المدفونة فالتراب (الخدمة + التوريد)"],
- "3CF1":["موزع بصري (ODF)","تركيب وتثبيت موزع بصري (هيكل ODF)"],
- "3CF2":["صندوق بوليستر بالساروت","تركيب صندوق بوليستر بالساروت حسب الحاجة مع التوريد ديالو"],
- "3CF3":["جارتيير بصرية أحادية النمط","تركيب جارتيير (jarretière) بصرية أحادية النمط من أي نوع"],
- "3CF52":["إعادة تعليم PCO موجود","إعادة وضع الملصقات على PCO موجود"],
- "3CF53":["تثبيت PCO موجود","تثبيت PCO موجود من قبل"],
- "INFO1":["خط جديد مع التركيب الداخلي","إنشاء وتشغيل خط جديد لمشترك مع التركيب الداخلي"],
- "INFO2":["خط جديد بلا التركيب الداخلي","إنشاء وتشغيل خط جديد لمشترك بدون التركيب الداخلي"],
- "INFO3":["تحويل بسيط (الكابل القديم)","تحويل بسيط وتشغيل خط FTTH مع إعادة استعمال كابل الربط الموجود"],
- "INFO4":["تحويل مع كابل جديد","تحويل وتشغيل خط مشترك مع مد كابل ربط جديد"],
- "INFO5":["نقطة ولوج مع الكابل","تركيب وتوصيل وتشغيل نقطة ولوج (point d'accès) مع الكابل"],
- "SAVFO1":["SAV عادي – الكابل القديم","تسوية خط مشترك مع التركيب الداخلي وإعادة استعمال كابل الربط الموجود (SAV عادي)"],
- "SAVFO2":["SAV عادي – كابل جديد","تسوية خط مشترك مع التركيب الداخلي ومد كابل ربط جديد (SAV عادي)"],
- "SAVFO3":["SAV بريميوم – الكابل القديم","تسوية خط مشترك مع التركيب الداخلي وإعادة استعمال كابل الربط الموجود (SAV بريميوم)"],
- "SAVFO4":["SAV بريميوم – كابل جديد","تسوية خط مشترك مع التركيب الداخلي ومد كابل ربط جديد (SAV بريميوم)"]
-};
-[["2CF10",16],["2CF11",24],["2CF12",56],["2CF13",64],["2CF14",96],["2CF15",144]].forEach(([c,n])=>AR[c]=[`وصلة (joint) كابل ${n} ليف`,`تجهيز وربط وصلة (joint) لكابل ${n} ليف`]);
-[["2CF20",4],["2CF21",8],["2CF22",16],["2CF23",32]].forEach(([c,n])=>AR[c]=[`سبليتر ${n} ألياف`,`تثبيت وربط سبليتر ${n} ألياف`]);
-[["2CF30","1 حتى 2"],["2CF31","4"],["2CF32","8"],["2CF33","16"],["2CF34","24"],["2CF35","56"]].forEach(([c,n])=>AR[c]=[`تفريعة ${n} ألياف`,`تفريع وربط ${n} ألياف`]);
-[["3CF40",4],["3CF41",8],["3CF42",16],["3CF43",24]].forEach(([c,n])=>AR[c]=[`درج بصري / رأس كابل ${n} ألياف`,`وضع وربط درج بصري / رأس كابل بـ ${n} ألياف`]);
-[["3CF44",56],["3CF45",64],["3CF46",96],["3CF47",144]].forEach(([c,n])=>AR[c]=[`درج بصري ${n} ليف`,`وضع وربط درج بصري بـ ${n} ليف`]);
-[["3CF50",4],["3CF51",8]].forEach(([c,n])=>AR[c]=[`PCO ${n} ألياف`,`وضع وربط نقطة تجميع بصرية PCO بـ ${n} ألياف`]);
-
-const BASE_BY = Object.fromEntries(CPS.map(c=>[c.code,c]));
+/* Le catalogue CPS (avec les prix) est chargé depuis la base : jamais dans la page. */
 const GROUPS = {INFO:["Installation GPON","تثبيت GPON"],SAVFO:["SAV GPON","SAV GPON"],CF:["Câblage fibre optique","تمديد الألياف البصرية"],GC:["Génie civil","الأشغال المدنية"],AUTRE:["Autres prestations","عمليات أخرى"]};
 const GROUP_ORDER = ["INFO","SAVFO","CF","GC","AUTRE"];
 const TYPES = {inst:{ar:"تثبيت",fr:"Installation"},sav:{ar:"SAV",fr:"SAV"},res:{ar:"أشغال الشبكة",fr:"Travaux réseau"}};
@@ -451,6 +361,9 @@ function errMsg(e){
   if(/BAD_USERNAME/.test(m))return "اسم المستخدم: حروف لاتينية صغيرة وأرقام فقط (3 حتى 30)، بلا فراغات";
   if(/BAD_PASSWORD/.test(m))return "كلمة السر خاصها 6 حروف على الأقل";
   if(/NOT_ALLOWED/.test(m))return "ما عندكش الصلاحية لهاد العملية";
+  if(/UNKNOWN_CODE/.test(m))return "عملية ما كايناش فـ CPS ديال الإيكيب: "+m.replace(/.*UNKNOWN_CODE\s*/,"");
+  if(/EMPTY_ENTRY/.test(m))return "زيد على الأقل عملية وحدة بكمية أكبر من 0";
+  if(/cps_for_me|my_sent_counts|check_ref|cps_base/.test(m)&&/does not exist|Could not find/i.test(m))return "خاصك تدوز ملف التحديث hisab-ftth-update-2.sql فـ Supabase";
   if(/create_member|set_member_password/.test(m)&&/does not exist|Could not find/i.test(m))return "خاصك تدوز ملف التحديث hisab-ftth-update-1.sql فـ Supabase";
   if(/Email not confirmed/i.test(m))return "خاصك تأكد الإيميل ديالك من الرسالة اللي جاتك";
   if(/already registered|already been registered/i.test(m))return "هاد الإيميل عندو حساب ديجا";
@@ -464,7 +377,7 @@ const isNetErr = e=>/Failed to fetch|NetworkError|Load failed|network/i.test((e&
 
 /* ---------------- State ---------------- */
 const S = {sb:null, user:null, me:null, teams:[], profiles:[], cpsRows:[], invites:[],
-  lang:ls.get("hf.lang","ar"), view:"home", today:[], month:{ym:today().slice(0,7),rows:[]},
+  lang:ls.get("hf.lang","ar"), base:[], baseBy:{}, techCps:[], counts:null, view:"home", today:[], month:{ym:today().slice(0,7),rows:[]},
   hist:{ym:today().slice(0,7),tech:"",type:"",status:"",team:"",trash:false,rows:[]},
   rep:{from:today(),to:today(),team:"",tech:"",onlyValid:false,chef:ls.get("hf.chef","")},
   setTeam:"", outbox:ls.get("hf.outbox",[])};
@@ -478,9 +391,10 @@ const teamMembers = tid=>S.profiles.filter(p=>p.team_id===tid&&(p.role==="tech"|
 
 /* ---------------- CPS per team ---------------- */
 function cpsFor(tid){
+  if(isTech()) return S.techCps.map(c=>({code:c.code,grp:c.grp,label_fr:c.label_fr,desig:c.desig_fr||"",label_ar:c.label_ar||c.label_fr,desig_ar:c.desig_ar||"",unit:c.unit,base:null,price:null,hidden:false,custom:!!c.is_custom}));
   const rows=S.cpsRows.filter(r=>r.team_id===tid); const by=Object.fromEntries(rows.map(r=>[r.code,r]));
-  const out=CPS.map(c=>{const r=by[c.code];return {code:c.code,grp:c.group,label_fr:c.label,desig:c.desig,label_ar:AR[c.code][0],desig_ar:AR[c.code][1],unit:c.unit,
-    base:c.price,price:(r&&r.price!=null)?+r.price:c.price,hidden:!!(r&&r.hidden),custom:false}});
+  const out=S.base.map(c=>{const r=by[c.code];return {code:c.code,grp:c.grp,label_fr:c.label_fr,desig:c.desig_fr||"",label_ar:c.label_ar||c.label_fr,desig_ar:c.desig_ar||"",unit:c.unit,
+    base:+c.price,price:(r&&r.price!=null)?+r.price:+c.price,hidden:!!(r&&r.hidden),custom:false}});
   rows.filter(r=>r.is_custom).forEach(r=>out.push({code:r.code,grp:r.grp||"AUTRE",label_fr:r.label_fr||r.code,desig:r.label_fr||"",label_ar:r.label_ar||r.label_fr||r.code,desig_ar:r.label_ar||"",unit:r.unit||"U",base:+r.price||0,price:+r.price||0,hidden:!!r.hidden,custom:true}));
   return out;
 }
@@ -497,15 +411,17 @@ async function fetchAll(q){ // pages of 1000
   return out;
 }
 async function loadBase(){
-  const sb=S.sb;
-  const [t,p,c,i]=await Promise.all([
+  const sb=S.sb, none=Promise.resolve({data:[]});
+  const [t,p,c,b,k]=await Promise.all([
     sb.from("teams").select("*").order("name"),
     sb.from("profiles").select("*").order("full_name"),
-    sb.from("team_cps").select("*"),
-    (isAdmin()||isChef())?sb.from("invites").select("*").order("created_at",{ascending:false}):Promise.resolve({data:[]})
+    isTech()?none:sb.from("team_cps").select("*"),
+    isTech()?none:sb.from("cps_base").select("*").order("sort"),
+    isTech()?sb.rpc("cps_for_me"):none
   ]);
-  for(const r of [t,p,c,i]) if(r.error) throw r.error;
-  S.teams=t.data; S.profiles=p.data; S.cpsRows=c.data; S.invites=i.data||[];
+  for(const r of [t,p,c,b,k]) if(r.error) throw r.error;
+  S.teams=t.data; S.profiles=p.data; S.cpsRows=c.data||[]; S.base=b.data||[]; S.baseBy=Object.fromEntries(S.base.map(x=>[x.code,x])); S.techCps=k.data||[];
+  if(!isTech()&&!S.base.length) throw new Error("خاصك تدوز ملف التحديث hisab-ftth-update-2.sql فـ Supabase");
 }
 function entriesQuery({from,to,team,tech,trash,status}){
   return ()=>{let q=S.sb.from("entries").select("*").gte("date",from).lte("date",to).order("date").order("created_at");
@@ -515,6 +431,7 @@ function entriesQuery({from,to,team,tech,trash,status}){
 }
 async function refreshToday(){
   const t=today(), ym=t.slice(0,7), [a,b]=monthRange(ym);
+  if(isTech()){const {data,error}=await S.sb.rpc("my_sent_counts"); if(error) throw error; S.counts=(data&&data[0])||{today:0,month:0}; S.month={ym,rows:[]}; S.today=[]; return}
   const rows=await fetchAll(entriesQuery({from:a,to:b}));
   S.month={ym,rows}; S.today=rows.filter(e=>e.date===t);
 }
@@ -577,8 +494,16 @@ function renderHeader(){
   const lg=$("#hLogo"); if(t&&t.logo_url){lg.src=t.logo_url;lg.hidden=false}else lg.hidden=true;
   $("#hTeam").textContent=isAdmin()?"لوحة المدير":(t?t.name:"");
   $("#hUser").textContent=(S.me.full_name||S.me.email)+" · "+ROLE_AR[S.me.role];
+  const c=S.counts||{today:0,month:0};
+  document.querySelector(".big-amt small").hidden=isTech();
+  if(isTech()){
+    $("#hToday").textContent=c.today;
+    $("#hTodayLbl").textContent="طلبيات صيفطتي اليوم";
+    $("#hMonth").textContent=c.month+" طلبية";
+    return;
+  }
   $("#hToday").textContent=fmt(S.today.reduce((s,e)=>s+amtOf(e),0));
-  $("#hTodayLbl").textContent=`مدخول اليوم · ${S.today.length} طلبية`+(isTech()?"":isChef()?" (الإيكيب كاملة)":" (كاع الإيكيبات)");
+  $("#hTodayLbl").textContent=`مدخول اليوم · ${S.today.length} طلبية`+(isChef()?" (الإيكيب كاملة)":" (كاع الإيكيبات)");
   $("#hMonth").textContent=money(S.month.rows.reduce((s,e)=>s+amtOf(e),0));
 }
 const ICONS={
@@ -589,7 +514,7 @@ const ICONS={
  team:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.8c1.6.8 2.6 2.6 3 5.2"/>',
  settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'};
 function buildTabs(){
-  const tabs=isTech()?[["home","اليوم","home"],["history","السجل","history"],["report","الرابور","report"],["settings","حسابي","settings"]]
+  const tabs=isTech()?[["home","اليوم","home"],["settings","حسابي","settings"]]
     :[["home",isAdmin()?"اللوحة":"اليوم",isAdmin()?"dash":"home"],["history","السجل","history"],["report","الرابور","report"],["team",isAdmin()?"الإيكيبات":"الإيكيب","team"],["settings","الإعدادات","settings"]];
   const n=$("#tabs"); n.style.gridTemplateColumns=`repeat(${tabs.length},1fr)`;
   n.innerHTML=tabs.map(([v,l,i])=>`<button role="tab" data-v="${v}" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[i]}</svg>${l}</button>`).join("");
@@ -603,7 +528,11 @@ function show(v,keepScroll){
 }
 
 /* ---------------- Cards ---------------- */
-function statusBadge(e){return e._pending?'<span class="badge pend">فالانتظار</span>':e.status==="validated"?'<span class="badge ok">مصادق</span>':'<span class="badge draft">مسودة</span>'}
+function statusBadge(e){return e._pending?'<span class="badge pend">ما تصيفطاتش</span>':e.status==="validated"?'<span class="badge ok">مؤكدة</span>':'<span class="badge pend">كتسنى التأكيد</span>'}
+function techCard(e){
+  return `<article class="entry" data-t="${e.type}"><div class="entry-top"><div><span class="tag">${TYPES[e.type].ar}</span><span class="ref ltr">${esc(e.ref||"بلا رقم")}</span>${statusBadge(e)}${e.client?`<div class="hint">${esc(e.client)}</div>`:""}</div></div>
+    <ul class="entry-lines">${(e.lines||[]).map(l=>`<li><span><b class="ltr">${esc(l.code)}</b> ${esc(lineLabel(l,e.team_id))}</span><span class="ltr">${qtyFmt(l.qty)} ${unitAr(l.unit)}</span></li>`).join("")}</ul></article>`;
+}
 function entryCard(e,opts={}){
   const lines=(e.lines||[]).map(l=>`<li><span><b class="ltr">${esc(l.code)}</b> ${esc(lineLabel(l,e.team_id))} × <span class="ltr">${qtyFmt(l.qty)}</span> ${unitAr(l.unit)}</span><span class="num ltr">${fmt(lineAmt(l))}</span></li>`).join("");
   const who=[]; if(!isTech())who.push(esc(nameOf(e.tech_id))); if(isAdmin()&&teamById(e.team_id))who.push(esc(teamById(e.team_id).name)); if(e.client)who.push(esc(e.client));
@@ -611,7 +540,7 @@ function entryCard(e,opts={}){
   let actions="";
   if(opts.trash){actions=`<button class="btn sm" data-restore="${e.id}">رجعها</button>${canValidate?`<button class="btn sm danger" data-purge="${e.id}">حذف نهائي</button>`:""}`}
   else if(!e._pending){actions=`<button class="btn sm" data-edit="${e.id}">${isTech()&&e.status==="validated"?"شوف":"تعديل"}</button><button class="btn sm" data-dup="${e.id}">نسخ</button>`
-    +(canValidate?(e.status==="validated"?`<button class="btn sm" data-unval="${e.id}">لغي المصادقة</button>`:`<button class="btn sm ok" data-val="${e.id}">صادق</button>`):"")}
+    +(canValidate?(e.status==="validated"?`<button class="btn sm" data-unval="${e.id}">لغي التأكيد</button>`:`<button class="btn sm ok" data-val="${e.id}">أكد ✓</button>`):"")}
   return `<article class="entry" data-t="${e.type}">
     <div class="entry-top"><div><span class="tag">${TYPES[e.type].ar}</span><span class="ref ltr">${esc(e.ref||"بلا رقم")}</span>${statusBadge(e)}
       ${who.length?`<div class="hint">${who.join(" · ")}</div>`:""}</div>
@@ -632,7 +561,16 @@ function barsHtml(items){
   const max=Math.max(1,...items.map(i=>i.v));
   return `<div class="bars">${items.map(i=>`<div class="b"><span class="name">${esc(i.n)}</span><div class="track"><div class="fill" style="width:${Math.round(i.v/max*100)}%"></div></div><span class="num ltr small">${fmt(i.v)}</span></div>`).join("")}</div>`;
 }
+function renderTechHome(){
+  const c=S.counts||{today:0,month:0}, pending=S.outbox;
+  let h=`<button class="btn accent big" id="newBtn">+ طلبية جديدة</button>
+  <div class="panel" style="margin-top:14px"><h3>كيفاش كتخدم</h3><p class="hint" style="margin:0">عمر العمليات اللي درتي والكميات، وضغط «صيفط للشاف». الطلبية كتمشي للشاف ديالك، هو اللي كيراجعها ويأكدها. من بعد ما تصيفطها ما كتبقاش تبان عندك.</p></div>
+  <div class="kpis"><div class="kpi"><div class="l">صيفطتي اليوم</div><div class="v num">${c.today}</div></div><div class="kpi"><div class="l">هاد الشهر</div><div class="v num">${c.month}</div></div></div>`;
+  if(pending.length) h+=`<div class="day"><div class="day-head"><b>ما تصيفطاتش (بلا إنترنت)</b><span class="hint">${pending.length}</span></div><p class="hint">غادي يتصيفطو بوحدهم ملي يرجع الإنترنت. ما تسدش التطبيق.</p>${pending.map(techCard).join("")}</div>`;
+  $("#v-home").innerHTML=h;
+}
 function renderHome(){
+  if(isTech()) return renderTechHome();
   const rows=S.month.rows, mTotal=rows.reduce((s,e)=>s+amtOf(e),0);
   const nb=t=>rows.filter(e=>e.type===t).length, val=rows.filter(e=>e.status==="validated").reduce((s,e)=>s+amtOf(e),0);
   const [y,m]=S.month.ym.split("-").map(Number), days=new Date(y,m,0).getDate(), td=new Date().getDate();
@@ -640,6 +578,9 @@ function renderHome(){
   const pmax=Math.max(1,...perDay);
   const pending=S.outbox.map(e=>({...e,_pending:true,total:linesAmt(e.lines)}));
   let h=`<button class="btn accent big" id="newBtn">+ طلبية جديدة</button>`;
+  const waiting=rows.filter(e=>e.status!=="validated");
+  if(waiting.length) h+=`<button class="panel" id="goPending" style="display:block;width:100%;text-align:start;margin-top:12px;border:2px solid var(--sav);cursor:pointer">
+    <b style="color:var(--sav)">${waiting.length} طلبية كتسنى التأكيد ديالك</b><div class="hint">بمجموع <span class="ltr">${money(waiting.reduce((s,e)=>s+amtOf(e),0))}</span> · ضغط هنا باش تراجعها وتأكدها</div></button>`;
   h+=`<h2 style="margin-top:18px">${MONTHS_AR[m-1]} ${y}</h2>
    <div class="kpis"><div class="kpi wide"><div class="l">مجموع الشهر</div><div class="v num ltr" style="text-align:right">${money(mTotal)}</div></div>
    <div class="kpi"><div class="l">طلبيات</div><div class="v num">${rows.length}</div></div>
@@ -655,8 +596,6 @@ function renderHome(){
   if(isAdmin()){
     const items=S.teams.map(t=>({n:t.name,v:rows.filter(e=>e.team_id===t.id).reduce((s,e)=>s+amtOf(e),0)})).sort((a,b)=>b.v-a.v);
     h+=items.length?`<div class="panel"><h3>المدخول حسب الإيكيب</h3>${barsHtml(items)}</div>`:`<div class="empty">مازال ما كاين حتى إيكيب. زيد الإيكيبات من «الإيكيبات».</div>`;
-    const drafts=rows.filter(e=>e.status!=="validated").length;
-    if(drafts) h+=`<p class="hint">${drafts} طلبية هاد الشهر مازال ما تصادقاتش.</p>`;
   }
   const list=S.today.slice().reverse();
   h+=`<h2 style="margin-top:18px">اليوم</h2>`;
@@ -681,7 +620,7 @@ function drawHistory(){
   const total=list.reduce((s,e)=>s+amtOf(e),0), drafts=list.filter(e=>e.status!=="validated");
   $("#histSummary").innerHTML=list.length?`${list.length} طلبية · المجموع <b class="num ltr">${money(total)}</b>`:"";
   $("#bulkVal").hidden=!( (isAdmin()||isChef()) && !H.trash && drafts.length );
-  $("#bulkVal").textContent=`صادق على ${drafts.length} طلبية`;
+  $("#bulkVal").textContent=`أكد ${drafts.length} طلبية`;
   $("#histList").innerHTML=list.length?dayGroups(list,{trash:H.trash}):`<div class="empty">${H.trash?"السلة خاوية فهاد الشهر.":"ما كاين حتى طلبية بهاد الفلاتر."}</div>`;
 }
 function renderHistory(){
@@ -692,7 +631,7 @@ function renderHistory(){
     <select class="in" id="hType" aria-label="النوع"><option value="">كل الأنواع</option>${Object.entries(TYPES).map(([k,v])=>`<option value="${k}" ${H.type===k?"selected":""}>${v.ar}</option>`).join("")}</select>
     ${isAdmin()?`<select class="in" id="hTeam" aria-label="الإيكيب">${teamOptions(H.team,"كل الإيكيبات")}</select>`:""}
     ${!isTech()?`<select class="in" id="hTech" aria-label="التقني">${techOptions(tid,H.tech,"كل التقنيين")}</select>`:""}
-    <select class="in" id="hStatus" aria-label="الحالة"><option value="">كل الحالات</option><option value="draft" ${H.status==="draft"?"selected":""}>مسودة</option><option value="validated" ${H.status==="validated"?"selected":""}>مصادق عليها</option></select>
+    <select class="in" id="hStatus" aria-label="الحالة"><option value="">كل الحالات</option><option value="draft" ${H.status==="draft"?"selected":""}>كتسنى التأكيد</option><option value="validated" ${H.status==="validated"?"selected":""}>مؤكدة</option></select>
    </div>
    <p class="hint" id="histSummary"></p>
    <button class="btn ok" id="bulkVal" hidden style="width:100%"></button>
@@ -712,7 +651,9 @@ function openEditor(e,copy){
   if(copy){D.ref="";D.date=today();D.status="draft";const ops=cpsFor(D.team_id);D.lines.forEach(l=>{const o=ops.find(x=>x.code===l.code);if(o)l.pu=o.price})}
   if(!D.tech_id&&isChef()) D.tech_id=S.me.id;
   readOnly=!!(editing&&isTech()&&editing.status==="validated");
-  $("#sheetTitle").textContent=editing?"تعديل الطلبية":"طلبية جديدة";
+  $("#sheetTitle").textContent=editing?"مراجعة الطلبية":"طلبية جديدة";
+  $("#saveBtn").textContent=isTech()?"صيفط للشاف":"حفظ الطلبية";
+  document.querySelector(".foot-total").hidden=isTech();
   $("#eTeamWrap").hidden=!isAdmin(); $("#eTeam").innerHTML=teamOptions(D.team_id);
   $("#eTechWrap").hidden=isTech(); fillTech();
   $("#eDate").value=D.date;$("#eRef").value=D.ref;$("#eClient").value=D.client;$("#eNote").value=D.note;
@@ -738,7 +679,7 @@ function renderDraft(){
     <div class="line-top"><div ${TD()}><b class="ltr">${esc(l.code)}</b> ${esc(lineLabel(l,D.team_id))}</div>${readOnly?"":`<button class="x" data-rm="${i}" aria-label="حيد">×</button>`}</div>
     <div class="line-bottom">
       <div class="stepper"><button data-dec="${i}" aria-label="نقص" ${readOnly?"disabled":""}>−</button><input data-q="${i}" type="number" inputmode="decimal" min="0" step="${l.unit==="U"?1:0.1}" value="${l.qty}" ${readOnly?"disabled":""} aria-label="الكمية"><button data-inc="${i}" aria-label="زيد" ${readOnly?"disabled":""}>+</button></div>
-      <div class="line-calc"><span class="ltr">${qtyFmt(l.qty)} ${unitAr(l.unit)} × ${fmt(l.pu)}</span><b class="num ltr">${money(lineAmt(l))}</b></div>
+      <div class="line-calc">${isTech()?`<b class="ltr">${qtyFmt(l.qty)} ${unitAr(l.unit)}</b>`:`<span>${qtyFmt(l.qty)} ${unitAr(l.unit)} × <span class="ltr">${fmt(l.pu)}</span></span><b class="num ltr">${money(lineAmt(l))}</b>`}</div>
     </div></div>`).join(""):`<p class="hint" style="margin:6px 2px">اختار عملية من اللائحة ولا قلّب عليها فـ CPS.</p>`;
   $("#draftTotal").textContent=money(linesAmt(D.lines));
   document.querySelectorAll(".toggle2.lang button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===S.lang));
@@ -746,7 +687,7 @@ function renderDraft(){
 function addLine(code){
   const o=cpsFor(D.team_id).find(x=>x.code===code); if(!o) return;
   const ex=D.lines.find(l=>l.code===code);
-  if(ex) ex.qty=+ex.qty+(o.unit==="U"?1:0); else D.lines.push({code,label:o.label_fr,unit:o.unit,qty:o.unit==="U"?1:0,pu:o.price});
+  if(ex) ex.qty=+ex.qty+(o.unit==="U"?1:0); else D.lines.push(isTech()?{code,label:o.label_fr,unit:o.unit,qty:o.unit==="U"?1:0}:{code,label:o.label_fr,unit:o.unit,qty:o.unit==="U"?1:0,pu:o.price});
   renderDraft();
   if(o.unit!=="U"){const i=D.lines.findIndex(l=>l.code===code);const inp=document.querySelector(`[data-q="${i}"]`);if(inp){inp.focus();inp.select()}}
 }
@@ -756,9 +697,12 @@ function checkDup(){
   const tid=D.team_id;
   dupTimer=setTimeout(async()=>{
     if(!D) return;
-    let q=S.sb.from("entries").select("id,date,type,tech_id").eq("team_id",tid).ilike("ref",r.replace(/[%_]/g,"\\$&")).is("deleted_at",null).limit(3);
-    const {data}=await q; if(!D) return; const d=(data||[]).find(x=>!editing||x.id!==editing.id);
-    if(d){w.hidden=false;w.textContent=`انتباه: هاد الرقم ديجا مسجل نهار ${frDate(d.date)} (${TYPES[d.type].ar}${isTech()?"":" · "+nameOf(d.tech_id)}). تأكد باش ما يتحسبش جوج مرات.`}else w.hidden=true;
+    let d=null;
+    if(isAdmin()){const {data}=await S.sb.from("entries").select("id,date,type,tech_id").eq("team_id",tid).ilike("ref",r.replace(/[%_]/g,"\\$&")).is("deleted_at",null).limit(3);
+      const x=(data||[]).find(x=>!editing||x.id!==editing.id); if(x) d={date:x.date,type:x.type,tech:nameOf(x.tech_id)}}
+    else{const {data}=await S.sb.rpc("check_ref",{p_ref:r,p_exclude:editing?editing.id:null}); d=data&&data[0]}
+    if(!D) return;
+    if(d){w.hidden=false;w.textContent=`انتباه: هاد الرقم ديجا مسجل نهار ${frDate(d.date)} (${TYPES[d.type].ar}${d.tech?" · "+d.tech:""}). تأكد باش ما يتحسبش جوج مرات.`}else w.hidden=true;
   },350);
 }
 async function saveDraft(){
@@ -777,7 +721,7 @@ async function saveDraft(){
       payload.id=uuid();
       const {error}=await S.sb.from("entries").insert(payload);
       if(error){ if(isNetErr(error)){S.outbox.push(payload);saveOutbox();toast("ما كاينش الإنترنت · الطلبية تحفظت فالهاتف وغادي تتصيفط ملي يرجع");closeEditor();renderHome();return} throw error }
-      toast("تحفظت الطلبية · "+money(linesAmt(D.lines)));
+      toast(isTech()?"تصيفطات للشاف ✓":"تحفظت الطلبية · "+money(linesAmt(D.lines)));
     }
     closeEditor(); await refreshAll();
   }catch(e){ if(!editing&&isNetErr(e)){S.outbox.push(payload);saveOutbox();toast("تحفظت فالهاتف وغادي تتصيفط ملي يرجع الإنترنت");closeEditor();renderHome()} else toast(errMsg(e)) }
@@ -1104,9 +1048,9 @@ function drawCps(){
     </div>`).join("")}).join("")||'<p class="hint">ما لقيت والو.</p>';
 }
 async function upsertCps(code,patch){
-  const tid=S.setTeam, base=BASE_BY[code], cur=S.cpsRows.find(r=>r.team_id===tid&&r.code===code);
+  const tid=S.setTeam, base=S.baseBy[code], cur=S.cpsRows.find(r=>r.team_id===tid&&r.code===code);
   const row={team_id:tid,code,...(cur?{grp:cur.grp,label_fr:cur.label_fr,label_ar:cur.label_ar,unit:cur.unit,price:cur.price,hidden:cur.hidden,is_custom:cur.is_custom}:{price:null,hidden:false,is_custom:false}),...patch};
-  if(base&&row.price!=null&&+row.price===base.price) row.price=null;
+  if(base&&row.price!=null&&+row.price===+base.price) row.price=null;
   let r;
   if(base&&row.price==null&&!row.hidden) r=await S.sb.from("team_cps").delete().eq("team_id",tid).eq("code",code);
   else r=await S.sb.from("team_cps").upsert(row);
@@ -1125,7 +1069,7 @@ function openOpForm(){
     <div class="err" hidden></div>
     <div class="row" style="margin-top:14px"><button type="button" class="btn grow" data-close>إلغاء</button><button type="submit" class="btn primary grow">زيد</button></div></form>`,
   async fd=>{const o=Object.fromEntries(fd); o.code=o.code.trim().toUpperCase();
-    if(BASE_BY[o.code]||S.cpsRows.find(r=>r.team_id===S.setTeam&&r.code===o.code)) throw new Error("هاد الكود ديجا كاين");
+    if(S.baseBy[o.code]||S.cpsRows.find(r=>r.team_id===S.setTeam&&r.code===o.code)) throw new Error("هاد الكود ديجا كاين");
     const ok=await upsertCps(o.code,{...o,price:+o.price,is_custom:true,hidden:false}); if(!ok) throw new Error("ما تحفظاتش");
     drawCps(); toast("تزادت العملية "+o.code)});
 }
@@ -1154,6 +1098,7 @@ document.addEventListener("click",async e=>{
   let b;
   if(g("[data-logout]")){await S.sb.auth.signOut();return}
   if(g("#newBtn")){openEditor(null);return}
+  if(g("#goPending")){S.hist.status="draft";S.hist.ym=today().slice(0,7);S.hist.trash=false;show("history");return}
   if(b=g("[data-edit]")){openEditor(findEntry(b.dataset.edit));return}
   if(b=g("[data-dup]")){openEditor(findEntry(b.dataset.dup),true);return}
   if(b=g("[data-val]")){setStatus([b.dataset.val],"validated");return}
@@ -1230,14 +1175,14 @@ $("#sheet").addEventListener("click",e=>{
 });
 $("#lines").addEventListener("input",e=>{
   const q=e.target.closest("[data-q]"); if(!q)return; const l=D.lines[+q.dataset.q]; l.qty=Math.max(0,+String(q.value).replace(",",".")||0);
-  q.closest(".line").querySelector(".line-calc").innerHTML=`<span class="ltr">${qtyFmt(l.qty)} ${unitAr(l.unit)} × ${fmt(l.pu)}</span><b class="num ltr">${money(lineAmt(l))}</b>`;
+  q.closest(".line").querySelector(".line-calc").innerHTML=isTech()?`<b class="ltr">${qtyFmt(l.qty)} ${unitAr(l.unit)}</b>`:`<span>${qtyFmt(l.qty)} ${unitAr(l.unit)} × <span class="ltr">${fmt(l.pu)}</span></span><b class="num ltr">${money(lineAmt(l))}</b>`;
   $("#draftTotal").textContent=money(linesAmt(D.lines));
 });
 $("#search").addEventListener("input",e=>{
   const q=e.target.value.trim().toLowerCase(), r=$("#results"); if(!q){r.hidden=true;return}
   const hits=cpsFor(D.team_id).filter(o=>!o.hidden&&(o.code+" "+o.label_fr+" "+o.desig+" "+o.label_ar+" "+o.desig_ar).toLowerCase().includes(q)).slice(0,12);
   r.hidden=false;
-  r.innerHTML=hits.length?hits.map(o=>`<button data-add="${esc(o.code)}" ${TD()}><b class="ltr">${esc(o.code)}</b> ${esc(opLabel(o))}<br><small class="muted"><span class="ltr">${fmt(o.price)} DH</span> / ${unitAr(o.unit)}</small></button>`).join(""):`<div class="hint" style="padding:10px 12px">ما لقيت والو.</div>`;
+  r.innerHTML=hits.length?hits.map(o=>`<button data-add="${esc(o.code)}" ${TD()}><b class="ltr">${esc(o.code)}</b> ${esc(opLabel(o))}<br><small class="muted">${isTech()?"":`<span class="ltr">${fmt(o.price)} DH</span> / `}${unitAr(o.unit)}</small></button>`).join(""):`<div class="hint" style="padding:10px 12px">ما لقيت والو.</div>`;
 });
 
 /* auth events */
