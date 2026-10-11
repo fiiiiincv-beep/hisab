@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F5C400">
+<title>Hisab FTTH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{
+  --bg:#EEF2F5; --card:#FFFFFF; --ink:#13263D; --muted:#5A6A7B; --line:#D6DEE6;
+  --fiber:#F5C400; --fiber-ink:#1E1A00; --inst:#1F5FAD; --sav:#C4541A; --res:#0E7867;
+  --ok:#137A3E; --danger:#B42318; --soft:#F4F7FA; --radius-sm:8px; --radius:12px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1722; --card:#152230; --ink:#E5ECF2; --muted:#93A3B4; --line:#283748;
+    --inst:#71A9EF; --sav:#F08B4D; --res:#3CC4AB; --ok:#4CC27E; --danger:#F2776B; --soft:#1A2939;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1722; --card:#152230; --ink:#E5ECF2; --muted:#93A3B4; --line:#283748;
+  --inst:#71A9EF; --sav:#F08B4D; --res:#3CC4AB; --ok:#4CC27E; --danger:#F2776B; --soft:#1A2939;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"IBM Plex Sans Arabic",Tahoma,"Segoe UI",Arial,sans-serif;font-size:16px;line-height:1.5;
+  -webkit-tap-highlight-color:transparent;padding-top:env(safe-area-inset-top,0px)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+:focus-visible{outline:3px solid var(--inst);outline-offset:2px}
+[hidden]{display:none!important}
+.ltr{direction:ltr;unicode-bidi:isolate}
+.num{font-variant-numeric:tabular-nums}
+.muted,.hint{color:var(--muted)} .hint{font-size:14px}
+.small{font-size:13.5px}
+
+/* Header */
+.jacket{background:var(--fiber);color:var(--fiber-ink);padding:12px 16px 16px;position:relative}
+.jacket::after{content:"";position:absolute;inset:auto 0 0 0;height:4px;
+  background:repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 18px,transparent 18px 26px)}
+.jacket-top{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14px}
+.who{display:flex;align-items:center;gap:10px;min-width:0}
+.who img{width:36px;height:36px;object-fit:contain;background:#fff;border-radius:8px;padding:2px}
+.who .t{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who .s{font-size:12.5px;opacity:.8}
+.net{font-size:12px;background:rgba(0,0,0,.1);padding:3px 9px;border-radius:999px;white-space:nowrap}
+.big-amt{font-size:clamp(36px,10.5vw,52px);font-weight:700;line-height:1.05;margin-top:8px;letter-spacing:-.5px}
+.big-amt small{font-size:.42em;font-weight:600;margin-inline-start:6px}
+.meta-line{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;margin-top:4px}
+
+main{padding:14px 14px 110px;max-width:760px;margin:0 auto}
+h2{font-size:19px;margin:6px 2px 12px;font-weight:700}
+h3{font-size:16px;margin:0 0 8px}
+
+.btn{border-radius:var(--radius-sm);padding:11px 16px;font-weight:600;background:var(--soft);color:var(--ink);border:1px solid var(--line)}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.accent{background:var(--fiber);color:var(--fiber-ink);border-color:var(--fiber)}
+.btn.big{width:100%;padding:15px;font-size:17px}
+.btn.danger{color:var(--danger);border-color:var(--danger);background:transparent}
+.btn.ok{color:var(--ok);border-color:var(--ok);background:transparent}
+.btn.sm{padding:6px 11px;font-size:14px}
+.btn.link{background:none;border:0;padding:4px;color:var(--inst);text-decoration:underline}
+.row{display:flex;gap:10px;align-items:center}
+.row.wrap{flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+
+label.f{display:block;font-size:14px;color:var(--muted);margin:12px 2px 5px;font-weight:500}
+.in{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--card);font-size:16px}
+textarea.in{min-height:64px;resize:vertical}
+.warn{color:var(--sav);font-size:13.5px;margin-top:5px}
+.err{color:var(--danger);font-size:14px;margin-top:8px}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px}
+.kpi .l{font-size:13px;color:var(--muted)}
+.kpi .v{font-size:20px;font-weight:700}
+.kpi.wide{grid-column:1/-1}
+.bars .b{display:grid;grid-template-columns:minmax(80px,38%) 1fr auto;gap:8px;align-items:center;margin:7px 0;font-size:14px}
+.bars .track{height:10px;background:var(--soft);border-radius:5px;overflow:hidden;direction:ltr}
+.bars .fill{height:100%;background:var(--fiber)}
+.bars .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spark{display:flex;align-items:flex-end;gap:2px;height:70px;direction:ltr;margin-top:6px}
+.spark div{flex:1;background:var(--inst);border-radius:2px 2px 0 0;min-height:2px;opacity:.85}
+.spark div.today{background:var(--fiber);opacity:1}
+
+/* Entries */
+.day{margin-top:16px}
+.day-head{display:flex;justify-content:space-between;align-items:baseline;padding:0 4px 6px;border-bottom:2px solid var(--ink);margin-bottom:8px}
+.day-head b{font-size:16px}
+.entry{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;border-inline-start:5px solid var(--c)}
+.entry[data-t="inst"]{--c:var(--inst)} .entry[data-t="sav"]{--c:var(--sav)} .entry[data-t="res"]{--c:var(--res)}
+.entry-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.tag{display:inline-block;font-size:12.5px;font-weight:700;color:var(--c);margin-inline-end:6px}
+.badge{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;border-radius:999px;border:1px solid currentColor;margin-inline-start:4px}
+.badge.ok{color:var(--ok)} .badge.draft{color:var(--muted)} .badge.pend{color:var(--sav)}
+.ref{font-weight:600}
+.entry-amt{font-weight:700;white-space:nowrap}
+.entry-lines{margin:6px 0 0;padding:0;list-style:none;font-size:14px;color:var(--muted)}
+.entry-lines li{display:flex;justify-content:space-between;gap:8px}
+.entry-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.empty{text-align:center;padding:30px 16px;color:var(--muted);background:var(--card);border:1px dashed var(--line);border-radius:var(--radius)}
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* Tabs */
+.tabs{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);
+  display:grid;padding-bottom:env(safe-area-inset-bottom,0px);z-index:20}
+.tabs button{background:none;border:0;padding:10px 2px 12px;font-size:13px;color:var(--muted);font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px}
+.tabs svg{width:22px;height:22px}
+.tabs button[aria-selected="true"]{color:var(--ink)}
+.tabs button[aria-selected="true"]::before{content:"";display:block;width:28px;height:3px;background:var(--fiber);border-radius:2px;margin-top:-10px;margin-bottom:5px}
+
+/* Sheet & modal */
+.sheet{position:fixed;inset:0;background:var(--bg);z-index:40;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--card);border-bottom:1px solid var(--line)}
+.sheet-head h3{margin:0;font-size:18px}
+.sheet-body{flex:1;overflow:auto;padding:14px;max-width:760px;width:100%;margin:0 auto}
+.sheet-foot{background:var(--card);border-top:1px solid var(--line);padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px))}
+.sheet-foot>div{max-width:760px;margin:0 auto}
+.foot-total{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.foot-total .num{font-size:24px;font-weight:700}
+.modal{position:fixed;inset:0;background:rgba(5,12,20,.55);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.modal-box{background:var(--card);width:100%;max-width:520px;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));max-height:92vh;overflow:auto}
+@media (min-width:600px){.modal{align-items:center}.modal-box{border-radius:16px}}
+
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.seg button{padding:11px 4px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--card);font-weight:600;font-size:15px}
+.seg button[aria-pressed="true"]{background:var(--c,var(--ink));border-color:var(--c,var(--ink));color:#fff}
+.seg button[data-t="inst"]{--c:var(--inst)} .seg button[data-t="sav"]{--c:var(--sav)} .seg button[data-t="res"]{--c:var(--res)}
+.toggle2{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:var(--radius-sm);overflow:hidden}
+.toggle2 button{border:0;background:var(--card);padding:7px;font-weight:600;font-size:14px}
+.toggle2 button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 12px;font-size:13.5px;text-align:start}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.results{border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--card);margin-top:6px;max-height:300px;overflow:auto}
+.results button{display:block;width:100%;background:none;border:0;border-bottom:1px solid var(--line);padding:10px 12px}
+.results button:last-child{border-bottom:0}
+.line{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px}
+.line-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;font-size:14.5px}
+.x{background:none;border:0;color:var(--muted);font-size:22px;line-height:1;padding:2px 6px}
+.line-bottom{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px}
+.stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:var(--radius-sm);overflow:hidden;direction:ltr}
+.stepper button{width:40px;height:40px;border:0;background:var(--soft);font-size:20px;font-weight:700}
+.stepper input{width:70px;height:40px;border:0;text-align:center;background:var(--card);font-size:16px}
+.line-calc{font-size:13.5px;color:var(--muted);text-align:end}
+.line-calc b{display:block;color:var(--ink);font-size:16px}
+.lock{background:var(--soft);border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 12px;font-size:14px;margin-bottom:10px}
+
+/* Lists */
+.item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-weight:700;flex:none;border:1px solid var(--line)}
+.team-logo{width:44px;height:44px;border-radius:10px;object-fit:contain;background:#fff;border:1px solid var(--line);flex:none}
+.logo-box{display:flex;align-items:center;gap:12px}
+.logo-box .ph{width:72px;height:72px;border-radius:12px;border:1px dashed var(--line);display:grid;place-items:center;color:var(--muted);font-size:12px;background:#fff}
+.logo-box img{width:72px;height:72px;object-fit:contain;border-radius:12px;background:#fff;border:1px solid var(--line)}
+.switch{position:relative;width:46px;height:26px;flex:none}
+.switch input{opacity:0;width:0;height:0;position:absolute}
+.switch span{position:absolute;inset:0;background:var(--line);border-radius:999px;transition:.15s}
+.switch span::after{content:"";position:absolute;width:20px;height:20px;top:3px;inset-inline-start:3px;background:#fff;border-radius:50%;transition:.15s}
+.switch input:checked+span{background:var(--ok)}
+.switch input:checked+span::after{inset-inline-start:23px}
+.switch input:focus-visible+span{outline:3px solid var(--inst)}
+
+/* CPS editor */
+.group-title{font-weight:700;margin:14px 2px 4px;font-size:15px}
+.price-row{display:grid;grid-template-columns:1fr 96px 40px;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.price-row.off .d{opacity:.45;text-decoration:line-through}
+.price-row .d{font-size:14px}
+.price-row .d small{color:var(--muted);display:block}
+.price-row input[type=number]{width:100%;padding:8px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--card);text-align:center;direction:ltr}
+.price-row input.changed{border-color:var(--sav);border-width:2px}
+.eye{background:none;border:1px solid var(--line);border-radius:var(--radius-sm);height:38px;color:var(--muted)}
+.eye svg{width:18px;height:18px}
+
+/* Report paper */
+.paper{background:#fff;color:#111;border-radius:6px;padding:18px 14px;margin-top:12px;border:1px solid var(--line);direction:ltr;text-align:left;font-size:13px}
+.paper .head{display:flex;gap:12px;align-items:center;border-bottom:3px solid #F5C400;padding-bottom:10px;margin-bottom:8px}
+.paper .head img{max-width:90px;max-height:60px;object-fit:contain}
+.paper h1{font-size:18px;margin:0}
+.paper .meta{display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;margin:8px 0 10px}
+.paper .scroll{overflow-x:auto}
+.paper table{border-collapse:collapse;width:100%;min-width:560px;margin-bottom:14px}
+.paper th,.paper td{border:1px solid #9AA6B2;padding:4px 6px;vertical-align:top}
+.paper th{background:#13263D;color:#fff;font-weight:600;text-align:left}
+.paper td.r,.paper th.r{text-align:right;white-space:nowrap}
+.paper tr.sub td{background:#FFF4BF;font-weight:700}
+.paper tr.grand td{background:#13263D;color:#fff;font-weight:700}
+.paper .sum{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0 10px;font-weight:600}
+.paper .sign{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px}
+.paper .sign div{border-top:1px solid #333;padding-top:4px;height:70px}
+.paper h4{margin:14px 0 6px;font-size:14px}
+
+/* Auth */
+.auth{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:24px 16px;max-width:440px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.brand .mark{width:52px;height:52px;border-radius:14px;background:var(--fiber);display:grid;place-items:center;position:relative;overflow:hidden}
+.brand .mark::after{content:"";position:absolute;inset:auto 0 8px 0;height:4px;background:repeating-linear-gradient(90deg,rgba(0,0,0,.25) 0 8px,transparent 8px 12px)}
+.brand b{font-size:22px;display:block}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;z-index:70;max-width:90vw;text-align:center}
+.spinner{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--fiber);border-radius:50%;animation:spin 1s linear infinite;margin:40px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ============ AUTH ============ -->
+<div id="authScreen" hidden>
+  <div class="auth">
+    <div class="brand"><div class="mark"></div><div><b>Hisab FTTH</b><span class="muted">حساب الخدمة ديال الإيكيبات</span></div></div>
+
+    <div id="setupBox" class="panel" hidden>
+      <h3>ربط التطبيق بـ Supabase</h3>
+      <p class="hint" style="margin-top:0">هادشي كيتدار مرة وحدة. كتلقاهم فـ Supabase › Project Settings › API.</p>
+      <label class="f" for="cfgUrl">Project URL</label>
+      <input class="in ltr" id="cfgUrl" placeholder="https://xxxx.supabase.co" autocomplete="off">
+      <label class="f" for="cfgKey">anon / publishable key</label>
+      <input class="in ltr" id="cfgKey" autocomplete="off">
+      <div class="err" id="cfgErr" hidden></div>
+      <button class="btn primary big" id="cfgSave" style="margin-top:14px">حفظ</button>
+    </div>
+
+    <div id="loginBox" class="panel" hidden>
+      <div class="toggle2" id="authMode" style="margin-bottom:6px"><button data-m="in" aria-pressed="true">دخول</button><button data-m="up" aria-pressed="false">حساب جديد</button></div>
+      <div id="upName" hidden><label class="f" for="aName">الاسم الكامل</label><input class="in" id="aName" autocomplete="name"></div>
+      <label class="f" for="aEmail">الإيميل</label>
+      <input class="in ltr" id="aEmail" type="email" autocomplete="username" inputmode="email">
+      <label class="f" for="aPass">كلمة السر</label>
+      <input class="in ltr" id="aPass" type="password" autocomplete="current-password">
+      <div class="err" id="aErr" hidden></div>
+      <button class="btn primary big" id="aGo" style="margin-top:14px">دخول</button>
+      <p class="hint" id="upHint" hidden style="margin-bottom:0">الحساب الجديد خاصو يكون المدير ولا الشاف زادك من قبل. أول حساب كيتصاوب هو حساب المدير.</p>
+      <button class="btn link" id="forgot" style="margin-top:8px">نسيتي كلمة السر؟</button>
+    </div>
+
+    <div id="newPassBox" class="panel" hidden>
+      <h3>كلمة سر جديدة</h3>
+      <input class="in ltr" id="np1" type="password" autocomplete="new-password" placeholder="6 حروف على الأقل">
+      <div class="err" id="npErr" hidden></div>
+      <button class="btn primary big" id="npGo" style="margin-top:12px">حفظ</button>
+    </div>
+
+    <div id="waitBox" class="panel" hidden>
+      <h3>الحساب ديالك مازال ما تفعّلش</h3>
+      <p class="hint" id="waitMsg">طلب من المدير ولا الشاف ديالك يفعّل الحساب ويحطك فإيكيب.</p>
+      <div class="row"><button class="btn grow" id="waitRetry">عاود جرب</button><button class="btn grow" data-logout>خروج</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="loading"><div class="spinner"></div></div>
+
+<!-- ============ APP ============ -->
+<div id="app" hidden>
+<header class="jacket">
+  <div class="jacket-top">
+    <div class="who"><img id="hLogo" alt="" hidden><div style="min-width:0"><div class="t" id="hTeam"></div><div class="s" id="hUser"></div></div></div>
+    <span class="net" id="net">متصل</span>
+  </div>
+  <div class="big-amt num"><span class="ltr" id="hToday">0,00</span><small>DH</small></div>
+  <div class="meta-line"><span id="hTodayLbl">مدخول اليوم</span><span>هاد الشهر: <b class="num ltr" id="hMonth">0,00 DH</b></span></div>
+</header>
+
+<main>
+  <section class="view" id="v-home"></section>
+  <section class="view" id="v-history" hidden></section>
+  <section class="view" id="v-report" hidden></section>
+  <section class="view" id="v-team" hidden></section>
+  <section class="view" id="v-settings" hidden></section>
+</main>
+<nav class="tabs" id="tabs" role="tablist"></nav>
+</div>
+
+<!-- Entry editor -->
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet-head"><h3 id="sheetTitle">طلبية جديدة</h3><button class="btn sm" id="closeSheet">إلغاء</button></div>
+  <div class="sheet-body">
+    <div class="lock" id="lockMsg" hidden>هاد الطلبية مصادق عليها من طرف الشاف، ما بقاش ممكن تبدلها.</div>
+    <div id="eTeamWrap"><label class="f" for="eTeam" style="margin-top:0">الإيكيب</label><select class="in" id="eTeam"></select></div>
+    <div id="eTechWrap"><label class="f" for="eTech">التقني اللي دار الخدمة</label><select class="in" id="eTech"></select></div>
+    <label class="f">نوع الخدمة</label>
+    <div class="seg" id="typeSeg"><button data-t="inst">تثبيت</button><button data-t="sav">SAV</button><button data-t="res">أشغال الشبكة</button></div>
+    <div class="two">
+      <div><label class="f" for="eDate">التاريخ</label><input class="in ltr" type="date" id="eDate"></div>
+      <div><label class="f" for="eRef">رقم الطلبية / OT</label><input class="in ltr" id="eRef" autocomplete="off"></div>
+    </div>
+    <div class="warn" id="dupWarn" hidden></div>
+    <label class="f" for="eClient">الزبون أو العنوان (بالحروف اللاتينية)</label>
+    <input class="in" id="eClient" autocomplete="off">
+    <div class="row" style="margin:12px 2px 5px"><span class="f grow" style="margin:0;color:var(--muted);font-size:14px">العمليات اللي تدارت</span>
+      <div class="toggle2 lang" style="width:150px"><button data-lang="ar">عربية</button><button data-lang="fr">Français</button></div></div>
+    <div class="chips" id="quick"></div>
+    <input class="in" id="search" placeholder="قلّب فـ CPS بالكود ولا بالاسم…" style="margin-top:10px" autocomplete="off">
+    <div class="results" id="results" hidden></div>
+    <div id="lines" style="margin-top:10px"></div>
+    <label class="f" for="eNote">ملاحظة</label>
+    <textarea class="in" id="eNote"></textarea>
+    <div id="statusWrap" class="row" style="margin-top:14px"><label class="switch"><input type="checkbox" id="eValid"><span></span></label><label for="eValid">مصادق عليها (validée)</label></div>
+    <div style="height:12px"></div>
+    <button class="btn danger" id="delBtn" hidden>حيد هاد الطلبية (للسلة)</button>
+  </div>
+  <div class="sheet-foot"><div>
+    <div class="foot-total"><span>مجموع الطلبية</span><span class="num ltr" id="draftTotal">0,00 DH</span></div>
+    <button class="btn primary big" id="saveBtn">حفظ الطلبية</button>
+  </div></div>
+</div>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true"><div class="modal-box" id="modalBox"></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* =====================================================================
+   CONFIG — Supabase (URL + clé publique "anon"). JAMAIS la clé service_role.
+   ===================================================================== */
+const SUPABASE_URL = "https://vjplelwaqkxuiihjlgcv.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqcGxlbHdhcWt4dWlpaGpsZ2N2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE3NDQxMDIsImV4cCI6MjEwNzMyMDEwMn0.l4-AR6ToVhRGmzNpsKd3i7E-vTQhtBKlQYm5hivN2o4";
+
+const CPS = [
+ ["1GC1","GC","Ouverture tranchée","Accès/Transmission – Ouverture tranchée","ml",15],
+ ["1GC2","GC","Micro-tranchée mécanisée 0,10 m","Génie civil en accotements de routes très étroit avec micro-tranchées mécanisées 0,10 m","ml",50],
+ ["2GC1","GC","Canalisation type CPS1","Construction canalisation type CPS1","ml",12],
+ ["2GC2","GC","Canalisation type CPS2","Construction canalisation type CPS2","ml",17],
+ ["1CF10","CF","Pose câble FO pleine terre","Pose câble à fibres optiques toute capacité en pleine terre","ml",2],
+ ["1CF11","CF","Pose câble FO conduite / PEHD","Pose câble à fibres optiques toute capacité en conduite ou sous PEHD","ml",2],
+ ["1CF12","CF","Pose câble FO façade / immeuble","Pose câble à fibres optiques toute capacité en façade ou immeuble","ml",2.4],
+ ["1CF13","CF","Pose câble FO aérien","Pose câble à fibres optiques toute capacité en aérien","ml",2.2],
+ ["1CF20","CF","Dépose câble FO aérien","Dépose d'un câble à fibres optiques toute capacité en aérien","km",600],
+ ["1CF21","CF","Dépose câble FO conduite/façade/imm.","Dépose d'un câble à fibres optiques toute capacité en conduite, façade, immeuble","km",600],
+ ["1CF30","CF","Protection tubes PEHD","Protection des tubes PEHD supportant des câbles FO (prestations + fourniture)","ml",10],
+ ["1CF31","CF","Protection câbles FO pleine terre","Protection de câbles FO plein terre (prestations + fourniture)","ml",10],
+ ["2CF10","CF","Joint câble 16 FO","Confection et raccordement d'un joint pour câble 16 FO","U",150],
+ ["2CF11","CF","Joint câble 24 FO","Confection et raccordement d'un joint pour câble 24 FO","U",230],
+ ["2CF12","CF","Joint câble 56 FO","Confection et raccordement d'un joint pour câble 56 FO","U",700],
+ ["2CF13","CF","Joint câble 64 FO","Confection et raccordement d'un joint pour câble 64 FO","U",800],
+ ["2CF14","CF","Joint câble 96 FO","Confection et raccordement d'un joint pour câble 96 FO","U",1272],
+ ["2CF15","CF","Joint câble 144 FO","Confection et raccordement d'un joint pour câble 144 FO","U",1600],
+ ["2CF20","CF","Splitter 4 FO","Fixation et raccordement 4 FO (splitter)","U",90],
+ ["2CF21","CF","Splitter 8 FO","Fixation et raccordement 8 FO (splitter)","U",120],
+ ["2CF22","CF","Splitter 16 FO","Fixation et raccordement 16 FO (splitter)","U",250],
+ ["2CF23","CF","Splitter 32 FO","Fixation et raccordement 32 FO (splitter)","U",420],
+ ["2CF30","CF","Dérivation 1 à 2 fibres","Dérivation et raccordement de 01 à 02 fibres","U",105],
+ ["2CF31","CF","Dérivation 4 fibres","Dérivation et raccordement de 04 fibres","U",110],
+ ["2CF32","CF","Dérivation 8 fibres","Dérivation et raccordement de 08 fibres","U",150],
+ ["2CF33","CF","Dérivation 16 fibres","Dérivation et raccordement de 16 fibres","U",300],
+ ["2CF34","CF","Dérivation 24 fibres","Dérivation et raccordement de 24 fibres","U",450],
+ ["2CF35","CF","Dérivation 56 fibres","Dérivation et raccordement de 56 fibres","U",850],
+ ["3CF1","CF","Répartiteur optique (bâti ODF)","Installation et fixation répartiteur optique (bâti ODF)","U",400],
+ ["3CF2","CF","Coffret polyester à clé","Installation d'un coffret polyester à clé adapté au besoin y compris sa fourniture","U",350],
+ ["3CF3","CF","Jarretière optique monomode","Installation jarretière optique monomode tout type","U",12],
+ ["3CF40","CF","Tiroir / tête de câble 4 FO","Pose et raccordement d'un tiroir optique / tête de câble à 4 FO","U",150],
+ ["3CF41","CF","Tiroir / tête de câble 8 FO","Pose et raccordement d'un tiroir optique / tête de câble à 8 FO","U",180],
+ ["3CF42","CF","Tiroir / tête de câble 16 FO","Pose et raccordement d'un tiroir optique / tête de câble à 16 FO","U",280],
+ ["3CF43","CF","Tiroir / tête de câble 24 FO","Pose et raccordement d'un tiroir optique / tête de câble à 24 FO","U",450],
+ ["3CF44","CF","Tiroir optique 56 FO","Pose et raccordement d'un tiroir optique à 56 FO","U",900],
+ ["3CF45","CF","Tiroir optique 64 FO","Pose et raccordement d'un tiroir optique à 64 FO","U",960],
+ ["3CF46","CF","Tiroir optique 96 FO","Pose et raccordement d'un tiroir optique à 96 FO","U",1100],
+ ["3CF47","CF","Tiroir optique 144 FO","Pose et raccordement d'un tiroir optique à 144 FO","U",1500],
+ ["3CF50","CF","PCO 4 FO","Pose et raccordement d'un point de concentration optique PCO à 4 FO","U",110],
+ ["3CF51","CF","PCO 8 FO","Pose et raccordement d'un point de concentration optique PCO à 8 FO","U",170],
+ ["3CF52","CF","Ré-étiquetage PCO existant","Ré-étiquetage PCO existant","U",10],
+ ["3CF53","CF","Fixation PCO existant","Fixation PCO existant","U",10],
+ ["INFO1","INFO","Ligne neuve + installation intérieure","Construction et mise en service d'une ligne neuve d'un abonné y compris l'installation intérieure","U",125],
+ ["INFO2","INFO","Ligne neuve sans installation intérieure","Construction et mise en service d'une ligne neuve d'un abonné non compris l'installation intérieure","U",90],
+ ["INFO3","INFO","Mutation simple (câble existant)","Mutation simple et mise en service d'une ligne FTTH avec reprise de câble de branchement FO existant","U",70],
+ ["INFO4","INFO","Mutation + nouveau câble","Mutation et mise en service d'une ligne d'abonné avec pose de nouveau câble de branchement FO","U",90],
+ ["INFO5","INFO","Point d'accès avec câble","Installation, câblage et mise en service d'un point d'accès avec câble","U",90],
+ ["SAVFO1","SAVFO","SAV Standard – câble existant","Normalisation d'une ligne d'abonné y compris l'installation intérieure avec reprise de câble de branchement existant (SAV Standard)","U",90],
+ ["SAVFO2","SAVFO","SAV Standard – nouveau câble","Normalisation d'une ligne d'abonné y compris l'installation intérieure avec pose d'un nouveau câble de branchement (SAV Standard)","U",90],
+ ["SAVFO3","SAVFO","SAV Premium – câble existant","Normalisation d'une ligne d'abonné y compris l'installation intérieure avec reprise de câble de branchement existant (SAV Premium)","U",90],
+ ["SAVFO4","SAVFO","SAV Premium – nouveau câble","Normalisation d'une ligne d'abonné y compris l'installation intérieure avec pose d'un nouveau câble de branchement (SAV Premium)","U",90]
+].map(([code,group,label,desig,unit,price])=>({code,group,label,desig,unit,price}));
+/* Arabic labels: [short, full] */
+const AR = {
+ "1GC1":["حفر خندق","فتح خندق (ولوج / نقل)"],
+ "1GC2":["خندق صغير آلي 0,10 م","أشغال مدنية في حواشي الطرق الضيقة جداً بخنادق صغيرة آلية عرضها 0,10 م"],
+ "2GC1":["قناة من نوع CPS1","إنشاء قناة من نوع CPS1"],
+ "2GC2":["قناة من نوع CPS2","إنشاء قناة من نوع CPS2"],
+ "1CF10":["مد كابل الألياف تحت التراب","مد كابل ألياف بصرية بأي سعة مدفون مباشرة في التراب"],
+ "1CF11":["مد كابل الألياف فالقناة / PEHD","مد كابل ألياف بصرية بأي سعة داخل قناة أو أنبوب PEHD"],
+ "1CF12":["مد كابل الألياف فالواجهة / العمارة","مد كابل ألياف بصرية بأي سعة على الواجهة أو داخل العمارة"],
+ "1CF13":["مد كابل الألياف هوائي","مد كابل ألياف بصرية بأي سعة في الهواء (على الأعمدة)"],
+ "1CF20":["نزع كابل الألياف الهوائي","نزع كابل ألياف بصرية بأي سعة من الهواء"],
+ "1CF21":["نزع كابل الألياف من القناة / الواجهة / العمارة","نزع كابل ألياف بصرية بأي سعة من القناة أو الواجهة أو العمارة"],
+ "1CF30":["حماية أنابيب PEHD","حماية أنابيب PEHD الحاملة لكابلات الألياف (الخدمة + التوريد)"],
+ "1CF31":["حماية كابل الألياف تحت التراب","حماية كابلات الألياف المدفونة فالتراب (الخدمة + التوريد)"],
+ "3CF1":["موزع بصري (ODF)","تركيب وتثبيت موزع بصري (هيكل ODF)"],
+ "3CF2":["صندوق بوليستر بالساروت","تركيب صندوق بوليستر بالساروت حسب الحاجة مع التوريد ديالو"],
+ "3CF3":["جارتيير بصرية أحادية النمط","تركيب جارتيير (jarretière) بصرية أحادية النمط من أي نوع"],
+ "3CF52":["إعادة تعليم PCO موجود","إعادة وضع الملصقات على PCO موجود"],
+ "3CF53":["تثبيت PCO موجود","تثبيت PCO موجود من قبل"],
+ "INFO1":["خط جديد مع التركيب الداخلي","إنشاء وتشغيل خط جديد لمشترك مع التركيب الداخلي"],
+ "INFO2":["خط جديد بلا التركيب الداخلي","إنشاء وتشغيل خط جديد لمشترك بدون التركيب الداخلي"],
+ "INFO3":["تحويل بسيط (الكابل القديم)","تحويل بسيط وتشغيل خط FTTH مع إعادة استعمال كابل الربط الموجود"],
+ "INFO4":["تحويل مع كابل جديد","تحويل وتشغيل خط مشترك مع مد كابل ربط جديد"],
+ "INFO5":["نقطة ولوج مع الكابل","تركيب وتوصيل وتشغيل نقطة ولوج (point d'accès) مع الكابل"],
+ "SAVFO1":["SAV عادي – الكابل القديم","تسوية خط مشترك مع التركيب الداخلي وإعادة استعمال كابل الربط الموجود (SAV عادي)"],
+ "SAVFO2":["SAV عادي – كابل جديد","تسوية خط مشترك مع التركيب الداخلي ومد كابل ربط جديد (SAV عادي)"],
+ "SAVFO3":["SAV بريميوم – الكابل القديم","تسوية خط مشترك مع التركيب الداخلي وإعادة استعمال كابل الربط الموجود (SAV بريميوم)"],
+ "SAVFO4":["SAV بريميوم – كابل جديد","تسوية خط مشترك مع التركيب الداخلي ومد كابل ربط جديد (SAV بريميوم)"]
+};
+[["2CF10",16],["2CF11",24],["2CF12",56],["2CF13",64],["2CF14",96],["2CF15",144]].forEach(([c,n])=>AR[c]=[`وصلة (joint) كابل ${n} ليف`,`تجهيز وربط وصلة (joint) لكابل ${n} ليف`]);
+[["2CF20",4],["2CF21",8],["2CF22",16],["2CF23",32]].forEach(([c,n])=>AR[c]=[`سبليتر ${n} ألياف`,`تثبيت وربط سبليتر ${n} ألياف`]);
+[["2CF30","1 حتى 2"],["2CF31","4"],["2CF32","8"],["2CF33","16"],["2CF34","24"],["2CF35","56"]].forEach(([c,n])=>AR[c]=[`تفريعة ${n} ألياف`,`تفريع وربط ${n} ألياف`]);
+[["3CF40",4],["3CF41",8],["3CF42",16],["3CF43",24]].forEach(([c,n])=>AR[c]=[`درج بصري / رأس كابل ${n} ألياف`,`وضع وربط درج بصري / رأس كابل بـ ${n} ألياف`]);
+[["3CF44",56],["3CF45",64],["3CF46",96],["3CF47",144]].forEach(([c,n])=>AR[c]=[`درج بصري ${n} ليف`,`وضع وربط درج بصري بـ ${n} ليف`]);
+[["3CF50",4],["3CF51",8]].forEach(([c,n])=>AR[c]=[`PCO ${n} ألياف`,`وضع وربط نقطة تجميع بصرية PCO بـ ${n} ألياف`]);
+
+const BASE_BY = Object.fromEntries(CPS.map(c=>[c.code,c]));
+const GROUPS = {INFO:["Installation GPON","تثبيت GPON"],SAVFO:["SAV GPON","SAV GPON"],CF:["Câblage fibre optique","تمديد الألياف البصرية"],GC:["Génie civil","الأشغال المدنية"],AUTRE:["Autres prestations","عمليات أخرى"]};
+const GROUP_ORDER = ["INFO","SAVFO","CF","GC","AUTRE"];
+const TYPES = {inst:{ar:"تثبيت",fr:"Installation"},sav:{ar:"SAV",fr:"SAV"},res:{ar:"أشغال الشبكة",fr:"Travaux réseau"}};
+const QUICK = {inst:["INFO1","INFO2","INFO3","INFO4","INFO5","1CF12","1CF13","3CF3"],sav:["SAVFO1","SAVFO2","SAVFO3","SAVFO4","1CF12","1CF13","3CF3"],res:["2CF30","2CF31","2CF32","2CF20","2CF21","3CF50","3CF51","1CF11","1CF13"]};
+const ROLE_AR = {admin:"المدير",chef:"شاف إيكيب",tech:"تقني",none:"بلا دور"};
+const DAYS_AR = ["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+const MONTHS_AR = ["يناير","فبراير","مارس","أبريل","ماي","يونيو","يوليوز","غشت","شتنبر","أكتوبر","نونبر","دجنبر"];
+
+/* ---------------- Utils ---------------- */
+const $ = s=>document.querySelector(s);
+const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad = n=>String(n).padStart(2,"0");
+const iso = d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const today = ()=>iso(new Date());
+const parseD = s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const frDate = s=>{const [y,m,d]=s.split("-");return d+"/"+m+"/"+y};
+const monthRange = ym=>{const [y,m]=ym.split("-").map(Number);return [ym+"-01",iso(new Date(y,m,0))]};
+function fmt(n){const s=(Math.round((+n||0)*100)/100).toFixed(2);let [i,d]=s.split(".");const neg=i.startsWith("-");if(neg)i=i.slice(1);i=i.replace(/\B(?=(\d{3})+(?!\d))/g," ");return (neg?"-":"")+i+","+d}
+const money = n=>fmt(n)+" DH";
+const qtyFmt = q=>Number.isInteger(+q)?String(+q):String(+q).replace(".",",");
+const lineAmt = l=>Math.round((+l.qty||0)*(+l.pu||0)*100)/100;
+const linesAmt = ls=>Math.round((ls||[]).reduce((s,l)=>s+lineAmt(l),0)*100)/100;
+const amtOf = e=>e.total!=null?+e.total:linesAmt(e.lines);
+const uuid = ()=>crypto.randomUUID?crypto.randomUUID():"10000000-1000-4000-8000-100000000000".replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));
+const initials = n=>String(n||"?").trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
+const ls = {get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let tt; function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2800)}
+function errMsg(e){
+  const m=(e&&(e.message||e.error_description))||String(e||"");
+  if(/Invalid login/i.test(m))return "الإيميل ولا كلمة السر غالطين";
+  if(/Email not confirmed/i.test(m))return "خاصك تأكد الإيميل ديالك من الرسالة اللي جاتك";
+  if(/already registered|already been registered/i.test(m))return "هاد الإيميل عندو حساب ديجا";
+  if(/Password should be/i.test(m))return "كلمة السر خاصها 6 حروف على الأقل";
+  if(/rate limit/i.test(m))return "بزاف ديال المحاولات، تسنى شوية وعاود";
+  if(/Failed to fetch|NetworkError|network/i.test(m))return "ما كاينش الإنترنت";
+  if(/row-level security|permission denied/i.test(m))return "ما عندكش الصلاحية لهاد العملية";
+  return m;
+}
+const isNetErr = e=>/Failed to fetch|NetworkError|Load failed|network/i.test((e&&e.message)||String(e));
+
+/* ---------------- State ---------------- */
+const S = {sb:null, user:null, me:null, teams:[], profiles:[], cpsRows:[], invites:[],
+  lang:ls.get("hf.lang","ar"), view:"home", today:[], month:{ym:today().slice(0,7),rows:[]},
+  hist:{ym:today().slice(0,7),tech:"",type:"",status:"",team:"",trash:false,rows:[]},
+  rep:{from:today(),to:today(),team:"",tech:"",onlyValid:false,chef:ls.get("hf.chef","")},
+  setTeam:"", outbox:ls.get("hf.outbox",[])};
+const isAdmin = ()=>S.me&&S.me.role==="admin";
+const isChef = ()=>S.me&&S.me.role==="chef";
+const isTech = ()=>S.me&&S.me.role==="tech";
+const teamById = id=>S.teams.find(t=>t.id===id);
+const profById = id=>S.profiles.find(p=>p.id===id);
+const nameOf = id=>{const p=profById(id);return p?(p.full_name||p.email):"—"};
+const teamMembers = tid=>S.profiles.filter(p=>p.team_id===tid&&(p.role==="tech"||p.role==="chef"));
+
+/* ---------------- CPS per team ---------------- */
+function cpsFor(tid){
+  const rows=S.cpsRows.filter(r=>r.team_id===tid); const by=Object.fromEntries(rows.map(r=>[r.code,r]));
+  const out=CPS.map(c=>{const r=by[c.code];return {code:c.code,grp:c.group,label_fr:c.label,desig:c.desig,label_ar:AR[c.code][0],desig_ar:AR[c.code][1],unit:c.unit,
+    base:c.price,price:(r&&r.price!=null)?+r.price:c.price,hidden:!!(r&&r.hidden),custom:false}});
+  rows.filter(r=>r.is_custom).forEach(r=>out.push({code:r.code,grp:r.grp||"AUTRE",label_fr:r.label_fr||r.code,desig:r.label_fr||"",label_ar:r.label_ar||r.label_fr||r.code,desig_ar:r.label_ar||"",unit:r.unit||"U",base:+r.price||0,price:+r.price||0,hidden:!!r.hidden,custom:true}));
+  return out;
+}
+const opLabel = o=>S.lang==="fr"?o.label_fr:o.label_ar;
+const unitAr = u=>S.lang==="fr"?u:({U:"وحدة",ml:"متر",km:"كلم"}[u]||u);
+const TD = ()=>S.lang==="fr"?'dir="ltr" style="text-align:left"':'';
+function lineLabel(l,tid){const o=cpsFor(tid).find(x=>x.code===l.code);return o?opLabel(o):l.label}
+
+/* ---------------- Supabase ---------------- */
+function cfg(){const u=SUPABASE_URL||ls.get("hf.cfg",{}).url, k=SUPABASE_ANON_KEY||ls.get("hf.cfg",{}).key;return (u&&k)?{url:u,key:k}:null}
+async function fetchAll(q){ // pages of 1000
+  let out=[],from=0;
+  for(;;){const {data,error}=await q().range(from,from+999);if(error)throw error;out=out.concat(data);if(data.length<1000)break;from+=1000}
+  return out;
+}
+async function loadBase(){
+  const sb=S.sb;
+  const [t,p,c,i]=await Promise.all([
+    sb.from("teams").select("*").order("name"),
+    sb.from("profiles").select("*").order("full_name"),
+    sb.from("team_cps").select("*"),
+    (isAdmin()||isChef())?sb.from("invites").select("*").order("created_at",{ascending:false}):Promise.resolve({data:[]})
+  ]);
+  for(const r of [t,p,c,i]) if(r.error) throw r.error;
+  S.teams=t.data; S.profiles=p.data; S.cpsRows=c.data; S.invites=i.data||[];
+}
+function entriesQuery({from,to,team,tech,trash,status}){
+  return ()=>{let q=S.sb.from("entries").select("*").gte("date",from).lte("date",to).order("date").order("created_at");
+    q=trash?q.not("deleted_at","is",null):q.is("deleted_at",null);
+    if(team)q=q.eq("team_id",team); if(tech)q=q.eq("tech_id",tech); if(status)q=q.eq("status",status);
+    return q};
+}
+async function refreshToday(){
+  const t=today(), ym=t.slice(0,7), [a,b]=monthRange(ym);
+  const rows=await fetchAll(entriesQuery({from:a,to:b}));
+  S.month={ym,rows}; S.today=rows.filter(e=>e.date===t);
+}
+
+/* ---------------- Offline outbox (nouvelles interventions) ---------------- */
+function saveOutbox(){ls.set("hf.outbox",S.outbox);renderNet()}
+async function flushOutbox(){
+  if(!S.sb||!S.outbox.length||!navigator.onLine) return;
+  const keep=[];
+  for(const e of S.outbox){
+    const {error}=await S.sb.from("entries").insert(e);
+    if(error&&error.code!=="23505"){ if(isNetErr(error)){keep.push(e)} else {keep.push(e);console.warn(error)} }
+  }
+  const sent=S.outbox.length-keep.length; S.outbox=keep; saveOutbox();
+  if(sent){toast(`تصيفطو ${sent} طلبية كانو فالانتظار`);await refreshAll()}
+}
+function renderNet(){
+  const n=$("#net"); if(!n) return;
+  const off=!navigator.onLine, p=S.outbox.length;
+  n.textContent=off?(p?`بلا إنترنت · ${p} فالانتظار`:"بلا إنترنت"):(p?`${p} فالانتظار`:"متصل");
+}
+addEventListener("online",()=>{renderNet();flushOutbox()}); addEventListener("offline",renderNet);
+
+/* ---------------- Auth flow ---------------- */
+function showAuth(box){
+  $("#loading").hidden=true;$("#app").hidden=true;$("#authScreen").hidden=false;
+  ["setupBox","loginBox","newPassBox","waitBox"].forEach(id=>$("#"+id).hidden=id!==box);
+}
+let authMode="in";
+function setAuthMode(m){authMode=m;document.querySelectorAll("#authMode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===m));
+  $("#upName").hidden=m!=="up";$("#upHint").hidden=m!=="up";$("#forgot").hidden=m==="up";$("#aGo").textContent=m==="up"?"إنشاء الحساب":"دخول";
+  $("#aPass").autocomplete=m==="up"?"new-password":"current-password";$("#aErr").hidden=true}
+async function boot(){
+  const c=cfg();
+  if(!c||!window.supabase){ if(!window.supabase){$("#loading").innerHTML='<div class="auth"><div class="panel">ما قدرش يتحمل التطبيق. تأكد من الإنترنت وعاود حل الصفحة.</div></div>';return} showAuth("setupBox");return }
+  S.sb=window.supabase.createClient(c.url,c.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  let recovering=false;
+  S.sb.auth.onAuthStateChange((ev,session)=>{
+    if(ev==="PASSWORD_RECOVERY"){recovering=true;showAuth("newPassBox");return}
+    if(ev==="SIGNED_OUT"){S.user=null;S.me=null;showAuth("loginBox")}
+  });
+  const {data:{session}}=await S.sb.auth.getSession();
+  if(recovering||/type=recovery/.test(location.hash)) return;
+  if(session){S.user=session.user;await enter()} else showAuth("loginBox");
+}
+async function enter(){
+  $("#loading").hidden=false;$("#authScreen").hidden=true;
+  let me=null;
+  for(let i=0;i<3&&!me;i++){const {data}=await S.sb.from("profiles").select("*").eq("id",S.user.id).maybeSingle();me=data;if(!me)await new Promise(r=>setTimeout(r,700))}
+  if(!me||!me.active||me.role==="none"||(me.role!=="admin"&&!me.team_id)){S.me=me;showAuth("waitBox");return}
+  S.me=me; S.setTeam=isAdmin()?"":me.team_id;
+  try{await loadBase();await refreshToday()}catch(e){toast(errMsg(e))}
+  $("#loading").hidden=true;$("#app").hidden=false;
+  buildTabs();renderHeader();show("home");renderNet();flushOutbox();
+}
+async function refreshAll(){try{await loadBase();await refreshToday()}catch(e){toast(errMsg(e))}renderHeader();show(S.view,true)}
+
+/* ---------------- Header & tabs ---------------- */
+function renderHeader(){
+  const t=isAdmin()?null:teamById(S.me.team_id);
+  const lg=$("#hLogo"); if(t&&t.logo_url){lg.src=t.logo_url;lg.hidden=false}else lg.hidden=true;
+  $("#hTeam").textContent=isAdmin()?"لوحة المدير":(t?t.name:"");
+  $("#hUser").textContent=(S.me.full_name||S.me.email)+" · "+ROLE_AR[S.me.role];
+  $("#hToday").textContent=fmt(S.today.reduce((s,e)=>s+amtOf(e),0));
+  $("#hTodayLbl").textContent=`مدخول اليوم · ${S.today.length} طلبية`+(isTech()?"":isChef()?" (الإيكيب كاملة)":" (كاع الإيكيبات)");
+  $("#hMonth").textContent=money(S.month.rows.reduce((s,e)=>s+amtOf(e),0));
+}
+const ICONS={
+ home:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+ dash:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+ history:'<path d="M4 6h16M4 12h16M4 18h10"/>',
+ report:'<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 12h7M9 16h7"/>',
+ team:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.8c1.6.8 2.6 2.6 3 5.2"/>',
+ settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'};
+function buildTabs(){
+  const tabs=isTech()?[["home","اليوم","home"],["history","السجل","history"],["report","الرابور","report"],["settings","حسابي","settings"]]
+    :[["home",isAdmin()?"اللوحة":"اليوم",isAdmin()?"dash":"home"],["history","السجل","history"],["report","الرابور","report"],["team",isAdmin()?"الإيكيبات":"الإيكيب","team"],["settings","الإعدادات","settings"]];
+  const n=$("#tabs"); n.style.gridTemplateColumns=`repeat(${tabs.length},1fr)`;
+  n.innerHTML=tabs.map(([v,l,i])=>`<button role="tab" data-v="${v}" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[i]}</svg>${l}</button>`).join("");
+}
+function show(v,keepScroll){
+  S.view=v;
+  document.querySelectorAll(".view").forEach(s=>s.hidden=s.id!=="v-"+v);
+  document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===v));
+  ({home:renderHome,history:renderHistory,report:renderReport,team:renderTeam,settings:renderSettings})[v]();
+  if(!keepScroll) scrollTo(0,0);
+}
+
+/* ---------------- Cards ---------------- */
+function statusBadge(e){return e._pending?'<span class="badge pend">فالانتظار</span>':e.status==="validated"?'<span class="badge ok">مصادق</span>':'<span class="badge draft">مسودة</span>'}
+function entryCard(e,opts={}){
+  const lines=(e.lines||[]).map(l=>`<li><span><b class="ltr">${esc(l.code)}</b> ${esc(lineLabel(l,e.team_id))} × <span class="ltr">${qtyFmt(l.qty)}</span> ${unitAr(l.unit)}</span><span class="num ltr">${fmt(lineAmt(l))}</span></li>`).join("");
+  const who=[]; if(!isTech())who.push(esc(nameOf(e.tech_id))); if(isAdmin()&&teamById(e.team_id))who.push(esc(teamById(e.team_id).name)); if(e.client)who.push(esc(e.client));
+  const canValidate=(isAdmin()||isChef())&&!e._pending;
+  let actions="";
+  if(opts.trash){actions=`<button class="btn sm" data-restore="${e.id}">رجعها</button>${canValidate?`<button class="btn sm danger" data-purge="${e.id}">حذف نهائي</button>`:""}`}
+  else if(!e._pending){actions=`<button class="btn sm" data-edit="${e.id}">${isTech()&&e.status==="validated"?"شوف":"تعديل"}</button><button class="btn sm" data-dup="${e.id}">نسخ</button>`
+    +(canValidate?(e.status==="validated"?`<button class="btn sm" data-unval="${e.id}">لغي المصادقة</button>`:`<button class="btn sm ok" data-val="${e.id}">صادق</button>`):"")}
+  return `<article class="entry" data-t="${e.type}">
+    <div class="entry-top"><div><span class="tag">${TYPES[e.type].ar}</span><span class="ref ltr">${esc(e.ref||"بلا رقم")}</span>${statusBadge(e)}
+      ${who.length?`<div class="hint">${who.join(" · ")}</div>`:""}</div>
+      <span class="entry-amt num ltr">${money(amtOf(e))}</span></div>
+    <ul class="entry-lines">${lines}</ul>
+    ${e.note?`<div class="hint" style="margin-top:4px">${esc(e.note)}</div>`:""}
+    ${actions?`<div class="entry-actions">${actions}</div>`:""}
+  </article>`;
+}
+function dayGroups(list,opts){
+  const by={}; list.forEach(e=>(by[e.date]=by[e.date]||[]).push(e));
+  return Object.keys(by).sort().reverse().map(d=>{const es=by[d];
+    return `<div class="day"><div class="day-head"><b>${DAYS_AR[parseD(d).getDay()]} <span class="ltr">${frDate(d)}</span></b><span class="num ltr">${money(es.reduce((s,e)=>s+amtOf(e),0))}</span></div>${es.map(e=>entryCard(e,opts)).join("")}</div>`}).join("");
+}
+
+/* ---------------- HOME ---------------- */
+function barsHtml(items){
+  const max=Math.max(1,...items.map(i=>i.v));
+  return `<div class="bars">${items.map(i=>`<div class="b"><span class="name">${esc(i.n)}</span><div class="track"><div class="fill" style="width:${Math.round(i.v/max*100)}%"></div></div><span class="num ltr small">${fmt(i.v)}</span></div>`).join("")}</div>`;
+}
+function renderHome(){
+  const rows=S.month.rows, mTotal=rows.reduce((s,e)=>s+amtOf(e),0);
+  const nb=t=>rows.filter(e=>e.type===t).length, val=rows.filter(e=>e.status==="validated").reduce((s,e)=>s+amtOf(e),0);
+  const [y,m]=S.month.ym.split("-").map(Number), days=new Date(y,m,0).getDate(), td=new Date().getDate();
+  const perDay=Array.from({length:days},(_,i)=>rows.filter(e=>+e.date.slice(8)===i+1).reduce((s,e)=>s+amtOf(e),0));
+  const pmax=Math.max(1,...perDay);
+  const pending=S.outbox.map(e=>({...e,_pending:true,total:linesAmt(e.lines)}));
+  let h=`<button class="btn accent big" id="newBtn">+ طلبية جديدة</button>`;
+  h+=`<h2 style="margin-top:18px">${MONTHS_AR[m-1]} ${y}</h2>
+   <div class="kpis"><div class="kpi wide"><div class="l">مجموع الشهر</div><div class="v num ltr" style="text-align:right">${money(mTotal)}</div></div>
+   <div class="kpi"><div class="l">طلبيات</div><div class="v num">${rows.length}</div></div>
+   <div class="kpi"><div class="l">مصادق عليه</div><div class="v num ltr small" style="font-size:17px;text-align:right">${money(val)}</div></div>
+   <div class="kpi"><div class="l">تثبيت / SAV</div><div class="v num">${nb("inst")} / ${nb("sav")}</div></div>
+   <div class="kpi"><div class="l">أشغال الشبكة</div><div class="v num">${nb("res")}</div></div></div>
+   <div class="panel"><h3>المدخول ديال كل نهار</h3><div class="spark">${perDay.map((v,i)=>`<div class="${i+1===td?"today":""}" style="height:${Math.round(v/pmax*100)}%" title="${i+1}: ${fmt(v)}"></div>`).join("")}</div>
+   <div class="row small muted ltr" style="justify-content:space-between"><span>1</span><span>${days}</span></div></div>`;
+  if(isChef()){
+    const items=teamMembers(S.me.team_id).map(p=>({n:p.full_name||p.email,v:rows.filter(e=>e.tech_id===p.id).reduce((s,e)=>s+amtOf(e),0)})).sort((a,b)=>b.v-a.v);
+    if(items.length) h+=`<div class="panel"><h3>المدخول حسب التقني</h3>${barsHtml(items)}</div>`;
+  }
+  if(isAdmin()){
+    const items=S.teams.map(t=>({n:t.name,v:rows.filter(e=>e.team_id===t.id).reduce((s,e)=>s+amtOf(e),0)})).sort((a,b)=>b.v-a.v);
+    h+=items.length?`<div class="panel"><h3>المدخول حسب الإيكيب</h3>${barsHtml(items)}</div>`:`<div class="empty">مازال ما كاين حتى إيكيب. زيد الإيكيبات من «الإيكيبات».</div>`;
+    const drafts=rows.filter(e=>e.status!=="validated").length;
+    if(drafts) h+=`<p class="hint">${drafts} طلبية هاد الشهر مازال ما تصادقاتش.</p>`;
+  }
+  const list=S.today.slice().reverse();
+  h+=`<h2 style="margin-top:18px">اليوم</h2>`;
+  if(pending.length) h+=`<div class="day"><div class="day-head"><b>فالانتظار (بلا إنترنت)</b><span class="hint">${pending.length}</span></div>${pending.map(e=>entryCard(e)).join("")}</div>`;
+  h+=list.length?list.map(e=>entryCard(e)).join(""):`<div class="empty">مازال ما تسجلات حتى طلبية اليوم.</div>`;
+  $("#v-home").innerHTML=h;
+}
+
+/* ---------------- HISTORY ---------------- */
+function teamOptions(sel,allLabel){return (allLabel?`<option value="">${allLabel}</option>`:"")+S.teams.map(t=>`<option value="${t.id}" ${t.id===sel?"selected":""}>${esc(t.name)}</option>`).join("")}
+function techOptions(tid,sel,allLabel){const ms=tid?teamMembers(tid):S.profiles.filter(p=>p.role==="tech"||p.role==="chef");
+  return (allLabel?`<option value="">${allLabel}</option>`:"")+ms.map(p=>`<option value="${p.id}" ${p.id===sel?"selected":""}>${esc(p.full_name||p.email)}</option>`).join("")}
+async function loadHistory(){
+  const H=S.hist,[a,b]=monthRange(H.ym);
+  $("#histList").innerHTML='<div class="spinner"></div>';
+  try{H.rows=await fetchAll(entriesQuery({from:a,to:b,team:isAdmin()?H.team:"",tech:H.tech,trash:H.trash,status:H.status}));}
+  catch(e){$("#histList").innerHTML=`<div class="empty">${esc(errMsg(e))}</div>`;return}
+  drawHistory();
+}
+function drawHistory(){
+  const H=S.hist; let list=H.rows; if(H.type) list=list.filter(e=>e.type===H.type);
+  const total=list.reduce((s,e)=>s+amtOf(e),0), drafts=list.filter(e=>e.status!=="validated");
+  $("#histSummary").innerHTML=list.length?`${list.length} طلبية · المجموع <b class="num ltr">${money(total)}</b>`:"";
+  $("#bulkVal").hidden=!( (isAdmin()||isChef()) && !H.trash && drafts.length );
+  $("#bulkVal").textContent=`صادق على ${drafts.length} طلبية`;
+  $("#histList").innerHTML=list.length?dayGroups(list,{trash:H.trash}):`<div class="empty">${H.trash?"السلة خاوية فهاد الشهر.":"ما كاين حتى طلبية بهاد الفلاتر."}</div>`;
+}
+function renderHistory(){
+  const H=S.hist, tid=isAdmin()?H.team:S.me.team_id;
+  $("#v-history").innerHTML=`<div class="panel-head"><h2 style="margin:6px 2px">${H.trash?"السلة":"السجل"}</h2><button class="btn sm" id="trashT">${H.trash?"رجع للسجل":"السلة"}</button></div>
+   <div class="filters">
+    <input class="in ltr" type="month" id="hM" value="${H.ym}" aria-label="الشهر">
+    <select class="in" id="hType" aria-label="النوع"><option value="">كل الأنواع</option>${Object.entries(TYPES).map(([k,v])=>`<option value="${k}" ${H.type===k?"selected":""}>${v.ar}</option>`).join("")}</select>
+    ${isAdmin()?`<select class="in" id="hTeam" aria-label="الإيكيب">${teamOptions(H.team,"كل الإيكيبات")}</select>`:""}
+    ${!isTech()?`<select class="in" id="hTech" aria-label="التقني">${techOptions(tid,H.tech,"كل التقنيين")}</select>`:""}
+    <select class="in" id="hStatus" aria-label="الحالة"><option value="">كل الحالات</option><option value="draft" ${H.status==="draft"?"selected":""}>مسودة</option><option value="validated" ${H.status==="validated"?"selected":""}>مصادق عليها</option></select>
+   </div>
+   <p class="hint" id="histSummary"></p>
+   <button class="btn ok" id="bulkVal" hidden style="width:100%"></button>
+   ${H.trash?'<p class="hint">الطلبيات اللي فالسلة ما كتحسبش فالمجموع ولا فالرابور.</p>':""}
+   <div id="histList"></div>`;
+  loadHistory();
+}
+
+/* ---------------- ENTRY EDITOR ---------------- */
+let D=null, editing=null, readOnly=false, dupTimer;
+function openEditor(e,copy){
+  editing=(e&&!copy)?e:null;
+  const tid=e?e.team_id:(isAdmin()?(S.teams[0]&&S.teams[0].id):S.me.team_id);
+  if(!tid){toast("زيد إيكيب أولا من «الإيكيبات»");return}
+  D=e?JSON.parse(JSON.stringify({team_id:e.team_id,tech_id:e.tech_id,type:e.type,date:e.date,ref:e.ref||"",client:e.client||"",note:e.note||"",lines:e.lines||[],status:e.status}))
+     :{team_id:tid,tech_id:isTech()?S.me.id:"",type:"inst",date:today(),ref:"",client:"",note:"",lines:[],status:"draft"};
+  if(copy){D.ref="";D.date=today();D.status="draft";const ops=cpsFor(D.team_id);D.lines.forEach(l=>{const o=ops.find(x=>x.code===l.code);if(o)l.pu=o.price})}
+  if(!D.tech_id&&isChef()) D.tech_id=S.me.id;
+  readOnly=!!(editing&&isTech()&&editing.status==="validated");
+  $("#sheetTitle").textContent=editing?"تعديل الطلبية":"طلبية جديدة";
+  $("#eTeamWrap").hidden=!isAdmin(); $("#eTeam").innerHTML=teamOptions(D.team_id);
+  $("#eTechWrap").hidden=isTech(); fillTech();
+  $("#eDate").value=D.date;$("#eRef").value=D.ref;$("#eClient").value=D.client;$("#eNote").value=D.note;
+  $("#statusWrap").hidden=isTech(); $("#eValid").checked=D.status==="validated";
+  $("#lockMsg").hidden=!readOnly; $("#saveBtn").hidden=readOnly;
+  $("#delBtn").hidden=!editing||readOnly; $("#delBtn").dataset.armed=""; $("#delBtn").textContent="حيد هاد الطلبية (للسلة)";
+  $("#sheet").querySelectorAll(".sheet-body input,.sheet-body select,.sheet-body textarea").forEach(i=>i.disabled=readOnly);
+  $("#search").value="";$("#results").hidden=true;
+  $("#sheet").hidden=false;document.body.style.overflow="hidden";
+  renderDraft();checkDup();
+}
+function fillTech(){const ms=teamMembers(D.team_id).filter(p=>p.active||p.id===D.tech_id);
+  if(!ms.find(p=>p.id===D.tech_id)&&!(editing&&D.tech_id)) D.tech_id=ms[0]?ms[0].id:"";
+  $("#eTech").innerHTML=(ms.length?"":'<option value="">ما كاين حتى تقني فهاد الإيكيب</option>')+ms.map(p=>`<option value="${p.id}" ${p.id===D.tech_id?"selected":""}>${esc(p.full_name||p.email)}${p.role==="chef"?" (الشاف)":""}</option>`).join("")}
+function closeEditor(){clearTimeout(dupTimer);$("#dupWarn").hidden=true;$("#sheet").hidden=true;document.body.style.overflow="";D=null;editing=null}
+function renderDraft(){
+  const ops=cpsFor(D.team_id), vis=ops.filter(o=>!o.hidden);
+  document.querySelectorAll("#typeSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.t===D.type));
+  const quick=QUICK[D.type].map(c=>vis.find(o=>o.code===c)).filter(Boolean).concat(vis.filter(o=>o.custom));
+  $("#quick").innerHTML=readOnly?"":quick.map(o=>`<button class="chip" data-add="${esc(o.code)}"><b class="ltr">${esc(o.code)}</b> ${esc(opLabel(o))}</button>`).join("");
+  $("#search").hidden=readOnly;
+  $("#lines").innerHTML=D.lines.length?D.lines.map((l,i)=>`<div class="line">
+    <div class="line-top"><div ${TD()}><b class="ltr">${esc(l.code)}</b> ${esc(lineLabel(l,D.team_id))}</div>${readOnly?"":`<button class="x" data-rm="${i}" aria-label="حيد">×</button>`}</div>
+    <div class="line-bottom">
+      <div class="stepper"><button data-dec="${i}" aria-label="نقص" ${readOnly?"disabled":""}>−</button><input data-q="${i}" type="number" inputmode="decimal" min="0" step="${l.unit==="U"?1:0.1}" value="${l.qty}" ${readOnly?"disabled":""} aria-label="الكمية"><button data-inc="${i}" aria-label="زيد" ${readOnly?"disabled":""}>+</button></div>
+      <div class="line-calc"><span class="ltr">${qtyFmt(l.qty)} ${unitAr(l.unit)} × ${fmt(l.pu)}</span><b class="num ltr">${money(lineAmt(l))}</b></div>
+    </div></div>`).join(""):`<p class="hint" style="margin:6px 2px">اختار عملية من اللائحة ولا قلّب عليها فـ CPS.</p>`;
+  $("#draftTotal").textContent=money(linesAmt(D.lines));
+  document.querySelectorAll(".toggle2.lang button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===S.lang));
+}
+function addLine(code){
+  const o=cpsFor(D.team_id).find(x=>x.code===code); if(!o) return;
+  const ex=D.lines.find(l=>l.code===code);
+  if(ex) ex.qty=+ex.qty+(o.unit==="U"?1:0); else D.lines.push({code,label:o.label_fr,unit:o.unit,qty:o.unit==="U"?1:0,pu:o.price});
+  renderDraft();
+  if(o.unit!=="U"){const i=D.lines.findIndex(l=>l.code===code);const inp=document.querySelector(`[data-q="${i}"]`);if(inp){inp.focus();inp.select()}}
+}
+function checkDup(){
+  clearTimeout(dupTimer); const w=$("#dupWarn"); const r=$("#eRef").value.trim();
+  w.hidden=true; if(!r||!navigator.onLine) return;
+  const tid=D.team_id;
+  dupTimer=setTimeout(async()=>{
+    if(!D) return;
+    let q=S.sb.from("entries").select("id,date,type,tech_id").eq("team_id",tid).ilike("ref",r.replace(/[%_]/g,"\\$&")).is("deleted_at",null).limit(3);
+    const {data}=await q; if(!D) return; const d=(data||[]).find(x=>!editing||x.id!==editing.id);
+    if(d){w.hidden=false;w.textContent=`انتباه: هاد الرقم ديجا مسجل نهار ${frDate(d.date)} (${TYPES[d.type].ar}${isTech()?"":" · "+nameOf(d.tech_id)}). تأكد باش ما يتحسبش جوج مرات.`}else w.hidden=true;
+  },350);
+}
+async function saveDraft(){
+  D.date=$("#eDate").value||today();D.ref=$("#eRef").value.trim();D.client=$("#eClient").value.trim();D.note=$("#eNote").value.trim();
+  D.lines=D.lines.filter(l=>+l.qty>0);
+  if(!D.tech_id){toast("اختار التقني");return}
+  if(!D.lines.length){toast("زيد على الأقل عملية وحدة بكمية أكبر من 0");renderDraft();return}
+  if(!isTech()) D.status=$("#eValid").checked?"validated":"draft";
+  const payload={team_id:D.team_id,tech_id:D.tech_id,type:D.type,date:D.date,ref:D.ref||null,client:D.client||null,note:D.note||null,lines:D.lines,status:D.status};
+  const btn=$("#saveBtn"); btn.disabled=true;
+  try{
+    if(editing){
+      const {error}=await S.sb.from("entries").update(payload).eq("id",editing.id); if(error) throw error;
+      toast("تحفظ التعديل");
+    }else{
+      payload.id=uuid();
+      const {error}=await S.sb.from("entries").insert(payload);
+      if(error){ if(isNetErr(error)){S.outbox.push(payload);saveOutbox();toast("ما كاينش الإنترنت · الطلبية تحفظت فالهاتف وغادي تتصيفط ملي يرجع");closeEditor();renderHome();return} throw error }
+      toast("تحفظت الطلبية · "+money(linesAmt(D.lines)));
+    }
+    closeEditor(); await refreshAll();
+  }catch(e){ if(!editing&&isNetErr(e)){S.outbox.push(payload);saveOutbox();toast("تحفظت فالهاتف وغادي تتصيفط ملي يرجع الإنترنت");closeEditor();renderHome()} else toast(errMsg(e)) }
+  finally{btn.disabled=false}
+}
+async function trashEntry(){
+  const b=$("#delBtn"); if(!b.dataset.armed){b.dataset.armed="1";b.textContent="ضغط مرة أخرى باش تأكد";return}
+  const {error}=await S.sb.from("entries").update({deleted_at:new Date().toISOString()}).eq("id",editing.id);
+  if(error){toast(errMsg(error));return}
+  toast("مشات للسلة · تقدر ترجعها من «السجل › السلة»");closeEditor();refreshAll();
+}
+async function setStatus(ids,status){
+  const {error}=await S.sb.from("entries").update({status}).in("id",ids);
+  if(error){toast(errMsg(error));return}
+  toast(status==="validated"?`تصادقات ${ids.length} طلبية`:"تلغات المصادقة"); refreshAll();
+}
+
+/* ---------------- REPORT ---------------- */
+function setPreset(p){
+  const d=new Date(); let a,b;
+  if(p==="today"){a=b=d} else if(p==="yesterday"){a=b=new Date(d.getFullYear(),d.getMonth(),d.getDate()-1)}
+  else if(p==="week"){const k=(d.getDay()+6)%7;a=new Date(d.getFullYear(),d.getMonth(),d.getDate()-k);b=d}
+  else if(p==="month"){a=new Date(d.getFullYear(),d.getMonth(),1);b=d}
+  else {a=new Date(d.getFullYear(),d.getMonth()-1,1);b=new Date(d.getFullYear(),d.getMonth(),0)}
+  S.rep.from=iso(a);S.rep.to=iso(b);$("#rFrom").value=S.rep.from;$("#rTo").value=S.rep.to;loadReport();
+}
+let REP=null;
+async function loadReport(){
+  const R=S.rep; let f=R.from,t=R.to; if(f>t)[f,t]=[t,f];
+  $("#reportPaper").innerHTML='<div class="spinner"></div>';
+  let rows; try{rows=await fetchAll(entriesQuery({from:f,to:t,team:isAdmin()?R.team:"",tech:isTech()?"":R.tech,status:R.onlyValid?"validated":""}))}
+  catch(e){$("#reportPaper").innerHTML=`<div class="empty">${esc(errMsg(e))}</div>`;return}
+  const teamId=isAdmin()?R.team:S.me.team_id, team=teamById(teamId);
+  const byDay={}; rows.forEach(e=>(byDay[e.date]=byDay[e.date]||[]).push(e));
+  const recap={}; rows.forEach(e=>(e.lines||[]).forEach(l=>{const k=l.code+"|"+l.pu;const r=recap[k]=recap[k]||{code:l.code,label:l.label,unit:l.unit,pu:+l.pu,qty:0,amt:0};r.qty=Math.round((r.qty+(+l.qty))*100)/100;r.amt+=lineAmt(l)}));
+  const byTech={}; rows.forEach(e=>{const r=byTech[e.tech_id]=byTech[e.tech_id]||{n:nameOf(e.tech_id),c:0,v:0};r.c++;r.v+=amtOf(e)});
+  const byTeam={}; rows.forEach(e=>{const r=byTeam[e.team_id]=byTeam[e.team_id]||{n:(teamById(e.team_id)||{}).name||"-",c:0,v:0};r.c++;r.v+=amtOf(e)});
+  const byType={inst:[0,0],sav:[0,0],res:[0,0]}; rows.forEach(e=>{byType[e.type][0]++;byType[e.type][1]+=amtOf(e)});
+  const single=isTech()||!!R.tech;
+  REP={f,t,rows,byDay,team,single,techName:single?(isTech()?(S.me.full_name||S.me.email):nameOf(R.tech)):"",
+    recap:Object.values(recap).sort((a,b)=>a.code.localeCompare(b.code,undefined,{numeric:true})),
+    byTech:Object.values(byTech).sort((a,b)=>b.v-a.v), byTeam:Object.values(byTeam).sort((a,b)=>b.v-a.v),
+    byType,total:Math.round(rows.reduce((s,e)=>s+amtOf(e),0)*100)/100,drafts:rows.filter(e=>e.status!=="validated").length};
+  drawReport();
+}
+const typeFr=t=>TYPES[t].fr;
+function drawReport(){
+  const R=REP, C=S.rep;
+  if(!R.rows.length){$("#reportPaper").innerHTML=`<div class="empty">ما كاين حتى طلبية بين <span class="ltr">${frDate(R.f)}</span> و <span class="ltr">${frDate(R.t)}</span>.</div>`;return}
+  const showTech=!R.single, showTeam=isAdmin()&&!C.team, cols=7+(showTech?1:0)+(showTeam?1:0);
+  let rows="";
+  Object.keys(R.byDay).sort().forEach(d=>{const es=R.byDay[d];
+    es.forEach(e=>(e.lines||[]).forEach((l,i)=>{const n=e.lines.length, st=e.status==="validated"?"":" *";
+      rows+=`<tr>${i===0?`<td rowspan="${n}">${frDate(d)}</td><td rowspan="${n}">${esc(e.ref||"-")}${st}${e.client?`<br><small>${esc(e.client)}</small>`:""}</td>${showTeam?`<td rowspan="${n}">${esc((teamById(e.team_id)||{}).name||"-")}</td>`:""}${showTech?`<td rowspan="${n}">${esc(nameOf(e.tech_id))}</td>`:""}<td rowspan="${n}">${typeFr(e.type)}</td>`:""}
+      <td>${esc(l.code)}</td><td>${esc(l.label)}</td><td class="r">${qtyFmt(l.qty)} ${l.unit}</td><td class="r">${fmt(l.pu)}</td><td class="r">${fmt(lineAmt(l))}</td></tr>`}));
+    rows+=`<tr class="sub"><td colspan="${cols}">Total du ${frDate(d)} (${es.length} intervention${es.length>1?"s":""})</td><td class="r">${fmt(es.reduce((s,e)=>s+amtOf(e),0))}</td></tr>`;
+  });
+  rows+=`<tr class="grand"><td colspan="${cols}">TOTAL GÉNÉRAL</td><td class="r">${fmt(R.total)}</td></tr>`;
+  const recap=R.recap.map(r=>`<tr><td>${esc(r.code)}</td><td>${esc(r.label)}</td><td>${r.unit}</td><td class="r">${qtyFmt(r.qty)}</td><td class="r">${fmt(r.pu)}</td><td class="r">${fmt(r.amt)}</td></tr>`).join("")+`<tr class="grand"><td colspan="5">TOTAL</td><td class="r">${fmt(R.total)}</td></tr>`;
+  const grp=(arr,h)=>`<h4>${h}</h4><div class="scroll"><table style="min-width:320px"><thead><tr><th>Nom</th><th class="r">Interventions</th><th class="r">Montant</th></tr></thead><tbody>${arr.map(x=>`<tr><td>${esc(x.n)}</td><td class="r">${x.c}</td><td class="r">${fmt(x.v)}</td></tr>`).join("")}</tbody></table></div>`;
+  const t=R.team;
+  $("#reportPaper").innerHTML=`<div class="paper">
+    <div class="head">${t&&t.logo_url?`<img src="${esc(t.logo_url)}" alt="">`:""}<div><h1>Rapport des travaux FTTH</h1><div>${esc((t&&(t.company||t.name))||"Toutes les équipes")}</div></div></div>
+    <div class="meta">
+      <span><b>Équipe :</b> ${esc(t?t.name:"Toutes")}</span><span><b>Responsable :</b> ${esc(C.chef||"-")}</span>
+      <span><b>Période :</b> du ${frDate(R.f)} au ${frDate(R.t)}</span><span><b>${R.single?"Technicien":"Zone"} :</b> ${esc(R.single?R.techName:((t&&t.zone)||"-"))}</span>
+    </div>
+    <div class="sum"><span>Interventions : ${R.rows.length}</span><span>Installations : ${R.byType.inst[0]} (${fmt(R.byType.inst[1])})</span><span>SAV : ${R.byType.sav[0]} (${fmt(R.byType.sav[1])})</span><span>Réseau : ${R.byType.res[0]} (${fmt(R.byType.res[1])})</span></div>
+    <div class="sum" style="font-size:16px">Montant total : ${money(R.total)}</div>
+    ${R.drafts?`<p style="margin:0 0 8px;color:#8a4a00">* ${R.drafts} intervention(s) non encore validée(s) par le chef d'équipe.</p>`:""}
+    <h4>Détail par jour</h4>
+    <div class="scroll"><table><thead><tr><th>Date</th><th>N° OT</th>${showTeam?"<th>Équipe</th>":""}${showTech?"<th>Technicien</th>":""}<th>Type</th><th>Code</th><th>Désignation</th><th class="r">Qté</th><th class="r">P.U</th><th class="r">Montant</th></tr></thead><tbody>${rows}</tbody></table></div>
+    ${showTeam&&R.byTeam.length>1?grp(R.byTeam,"Récapitulatif par équipe"):""}
+    ${showTech&&R.byTech.length>1?grp(R.byTech,"Récapitulatif par technicien"):""}
+    <h4>Récapitulatif par prestation (CPS)</h4>
+    <div class="scroll"><table><thead><tr><th>Code</th><th>Désignation</th><th>U</th><th class="r">Qté</th><th class="r">P.U</th><th class="r">Montant</th></tr></thead><tbody>${recap}</tbody></table></div>
+    <div class="sign"><div>Signature ${R.single?"technicien":"chef d'équipe"}</div><div>Signature responsable</div></div>
+    <p style="color:#555;font-size:11px;margin:8px 0 0">Montants en DH selon CPS. Édité le ${frDate(today())}.</p>
+  </div>`;
+}
+function renderReport(){
+  const C=S.rep, tid=isAdmin()?C.team:S.me.team_id;
+  $("#v-report").innerHTML=`<h2>الرابور</h2><div class="panel">
+    <div class="chips" id="presets"><button class="chip" data-p="today">اليوم</button><button class="chip" data-p="yesterday">البارح</button><button class="chip" data-p="week">هاد السيمانة</button><button class="chip" data-p="month">هاد الشهر</button><button class="chip" data-p="lastmonth">الشهر اللي فات</button></div>
+    <div class="two"><div><label class="f" for="rFrom">من</label><input class="in ltr" type="date" id="rFrom" value="${C.from}"></div><div><label class="f" for="rTo">حتى</label><input class="in ltr" type="date" id="rTo" value="${C.to}"></div></div>
+    ${isAdmin()?`<label class="f" for="rTeam">الإيكيب</label><select class="in" id="rTeam">${teamOptions(C.team,"كل الإيكيبات")}</select>`:""}
+    ${!isTech()?`<label class="f" for="rTech">التقني</label><select class="in" id="rTech">${techOptions(tid,C.tech,"الإيكيب كاملة")}</select>`:""}
+    <label class="f" for="rChef">اسم المسؤول اللي غادي يتعطى ليه</label><input class="in" id="rChef" value="${esc(C.chef)}" placeholder="M. ...">
+    <div class="row" style="margin-top:12px"><label class="switch"><input type="checkbox" id="rValid" ${C.onlyValid?"checked":""}><span></span></label><label for="rValid">غير الطلبيات المصادق عليها</label></div>
+    <div class="row wrap" style="margin-top:14px"><button class="btn primary grow" id="pdfBtn">تحميل PDF</button><button class="btn grow" id="csvBtn">Excel (CSV)</button></div>
+  </div><div id="reportPaper"></div>`;
+  loadReport();
+}
+function pdfText(s){return String(s??"").replace(/[–—]/g,"-").replace(/[‘’]/g,"'").replace(/[  ]/g," ").replace(/[^\x00-ɏ\n]/g,"?")}
+async function imgData(url){
+  try{const r=await fetch(url,{cache:"no-store"});const b=await r.blob();
+    const d=await new Promise((ok,ko)=>{const fr=new FileReader();fr.onload=()=>ok(fr.result);fr.onerror=ko;fr.readAsDataURL(b)});
+    const dim=await new Promise(ok=>{const i=new Image();i.onload=()=>ok([i.naturalWidth,i.naturalHeight]);i.onerror=()=>ok([1,1]);i.src=d});
+    return {d,w:dim[0],h:dim[1],fmt:/png/i.test(b.type)?"PNG":"JPEG"}}catch(e){return null}
+}
+async function makePdf(){
+  const R=REP, C=S.rep; if(!R||!R.rows.length){toast("ما كاين حتى طلبية فهاد الفترة");return}
+  if(!window.jspdf){toast("مولد PDF ما تحملش، تأكد من الإنترنت");return}
+  const btn=$("#pdfBtn");btn.disabled=true;
+  try{
+  const {jsPDF}=window.jspdf, doc=new jsPDF({unit:"mm",format:"a4"}), W=doc.internal.pageSize.getWidth();
+  const showTech=!R.single, showTeam=isAdmin()&&!C.team, t=R.team;
+  doc.setFillColor(245,196,0);doc.rect(0,0,W,4,"F");
+  let x0=14;
+  if(t&&t.logo_url){const im=await imgData(t.logo_url);if(im){const h=18,w=Math.min(40,h*im.w/im.h);doc.addImage(im.d,im.fmt,14,8,w,h);x0=14+w+6}}
+  doc.setFont("helvetica","bold");doc.setFontSize(16);doc.text("Rapport des travaux FTTH",x0,15);
+  doc.setFont("helvetica","normal");doc.setFontSize(11);doc.text(pdfText((t&&(t.company||t.name))||"Toutes les équipes"),x0,22);
+  doc.setFontSize(10);let y=33;
+  doc.text(pdfText("Équipe : "+(t?t.name:"Toutes")),14,y);doc.text(pdfText("Responsable : "+(C.chef||"-")),110,y);y+=6;
+  doc.text("Période : du "+frDate(R.f)+" au "+frDate(R.t),14,y);doc.text(pdfText(R.single?"Technicien : "+R.techName:"Zone : "+((t&&t.zone)||"-")),110,y);y+=6;
+  doc.text(`Interventions : ${R.rows.length}   Installations : ${R.byType.inst[0]}   SAV : ${R.byType.sav[0]}   Réseau : ${R.byType.res[0]}`,14,y);y+=7;
+  doc.setFont("helvetica","bold");doc.setFontSize(12);doc.text("Montant total : "+money(R.total),14,y);y+=4;
+  if(R.drafts){doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(140,74,0);doc.text(`* ${R.drafts} intervention(s) non encore validée(s) par le chef d'équipe.`,14,y+4);doc.setTextColor(0);y+=5}
+  const head=["Date","N° OT"].concat(showTeam?["Équipe"]:[]).concat(showTech?["Technicien"]:[]).concat(["Type","Code","Désignation","Qté","P.U","Montant"]);
+  const nc=head.length, body=[];
+  Object.keys(R.byDay).sort().forEach(d=>{const es=R.byDay[d];
+    es.forEach(e=>(e.lines||[]).forEach((l,i)=>{const f=i===0;
+      body.push([f?frDate(d):"",f?pdfText((e.ref||"-")+(e.status==="validated"?"":" *")+(e.client?"\n"+e.client:"")):""]
+        .concat(showTeam?[f?pdfText((teamById(e.team_id)||{}).name||"-"):""]:[]).concat(showTech?[f?pdfText(nameOf(e.tech_id)):""]:[])
+        .concat([f?typeFr(e.type):"",l.code,pdfText(l.label),qtyFmt(l.qty)+" "+l.unit,fmt(l.pu),fmt(lineAmt(l))]))}));
+    body.push([{content:`Total du ${frDate(d)} (${es.length} intervention${es.length>1?"s":""})`,colSpan:nc-1,styles:{fillColor:[255,244,191],fontStyle:"bold"}},{content:fmt(es.reduce((s,e)=>s+amtOf(e),0)),styles:{fillColor:[255,244,191],fontStyle:"bold",halign:"right"}}]);
+  });
+  body.push([{content:"TOTAL GÉNÉRAL",colSpan:nc-1,styles:{fillColor:[19,38,61],textColor:255,fontStyle:"bold"}},{content:fmt(R.total),styles:{fillColor:[19,38,61],textColor:255,fontStyle:"bold",halign:"right"}}]);
+  const common={theme:"grid",styles:{fontSize:7.6,cellPadding:1.5,lineColor:[154,166,178],lineWidth:.15},headStyles:{fillColor:[19,38,61],textColor:255},margin:{left:10,right:10}};
+  const r3={halign:"right"};
+  const cs={}; cs[nc-1]={...r3,cellWidth:19};cs[nc-2]={...r3,cellWidth:14};cs[nc-3]={...r3,cellWidth:15};cs[0]={cellWidth:17};
+  doc.setFont("helvetica","bold");doc.setFontSize(11);doc.text("Détail par jour",14,y+8);
+  doc.autoTable({...common,startY:y+10,head:[head],body,columnStyles:cs});
+  const section=(title,hd,bd,colS)=>{let yy=doc.lastAutoTable.finalY+8;if(yy>255){doc.addPage();yy=16}doc.setFont("helvetica","bold");doc.setFontSize(11);doc.text(title,14,yy);doc.autoTable({...common,startY:yy+2,head:[hd],body:bd,columnStyles:colS})};
+  const tot=(n)=>[{content:"TOTAL",colSpan:n,styles:{fillColor:[19,38,61],textColor:255,fontStyle:"bold"}},{content:fmt(R.total),styles:{fillColor:[19,38,61],textColor:255,fontStyle:"bold",halign:"right"}}];
+  if(showTeam&&R.byTeam.length>1) section("Récapitulatif par équipe",["Équipe","Interventions","Montant"],R.byTeam.map(x=>[pdfText(x.n),x.c,fmt(x.v)]).concat([tot(2)]),{1:r3,2:r3});
+  if(showTech&&R.byTech.length>1) section("Récapitulatif par technicien",["Technicien","Interventions","Montant"],R.byTech.map(x=>[pdfText(x.n),x.c,fmt(x.v)]).concat([tot(2)]),{1:r3,2:r3});
+  section("Récapitulatif par prestation (CPS)",["Code","Désignation","U","Qté","P.U","Montant"],R.recap.map(r=>[r.code,pdfText(r.label),r.unit,qtyFmt(r.qty),fmt(r.pu),fmt(r.amt)]).concat([tot(5)]),{0:{cellWidth:18},2:{cellWidth:12},3:{...r3,cellWidth:18},4:{...r3,cellWidth:20},5:{...r3,cellWidth:24}});
+  let ys=doc.lastAutoTable.finalY+16; if(ys>262){doc.addPage();ys=24}
+  doc.setFont("helvetica","normal");doc.setFontSize(10);doc.line(14,ys,90,ys);doc.line(115,ys,196,ys);
+  doc.text(R.single?"Signature technicien":"Signature chef d'équipe",14,ys+5);doc.text("Signature responsable",115,ys+5);
+  const pages=doc.getNumberOfPages();
+  for(let i=1;i<=pages;i++){doc.setPage(i);doc.setFontSize(8);doc.setTextColor(110);doc.text(`Montants en DH selon CPS. Édité le ${frDate(today())}. Page ${i}/${pages}`,14,290);doc.setTextColor(0)}
+  const nm=(t?t.name:"Toutes").replace(/[^\w-]+/g,"_");
+  downloadBlob(`Rapport_FTTH_${nm}_${R.f}_${R.t}.pdf`,doc.output("blob"));
+  }catch(e){toast("ما قدرش يصاوب PDF: "+errMsg(e))}finally{btn.disabled=false}
+}
+function makeCsv(){
+  const R=REP; if(!R||!R.rows.length){toast("ما كاين حتى طلبية فهاد الفترة");return}
+  const q=v=>{const s=String(v??"");return /[;"\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
+  const out=[["Date","Equipe","Technicien","N° OT","Client","Type","Statut","Code","Désignation","Unité","Quantité","Prix unitaire","Montant"].join(";")];
+  R.rows.forEach(e=>(e.lines||[]).forEach(l=>out.push([frDate(e.date),(teamById(e.team_id)||{}).name||"",nameOf(e.tech_id),e.ref||"",e.client||"",typeFr(e.type),e.status==="validated"?"Validée":"Brouillon",l.code,l.label,l.unit,String(l.qty).replace(".",","),String(l.pu).replace(".",","),String(lineAmt(l)).replace(".",",")].map(q).join(";"))));
+  downloadBlob(`Export_FTTH_${R.f}_${R.t}.csv`,new Blob(["﻿"+out.join("\r\n")],{type:"text/csv;charset=utf-8"}));
+}
+function downloadBlob(name,blob){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);toast("تحمل الملف")}
+
+/* ---------------- MODAL helper ---------------- */
+function modal(html,onSubmit){
+  $("#modalBox").innerHTML=html; $("#modal").hidden=false;
+  const f=$("#modalBox form"); const first=$("#modalBox input,#modalBox select"); if(first) setTimeout(()=>first.focus(),50);
+  if(f) f.onsubmit=async ev=>{ev.preventDefault();const b=f.querySelector("[type=submit]");b.disabled=true;const er=f.querySelector(".err");er.hidden=true;
+    try{await onSubmit(new FormData(f));closeModal()}catch(e){er.textContent=errMsg(e);er.hidden=false}finally{b.disabled=false}};
+}
+function closeModal(){$("#modal").hidden=true;$("#modalBox").innerHTML=""}
+$("#modal").addEventListener("click",e=>{if(e.target.id==="modal"||e.target.closest("[data-close]"))closeModal()});
+
+/* ---------------- TEAM ---------------- */
+async function createAccount({full_name,email,password,role,team_id}){
+  email=email.trim().toLowerCase();
+  if(password.length<6) throw new Error("كلمة السر خاصها 6 حروف على الأقل");
+  await S.sb.from("invites").delete().eq("email",email);
+  const {error:e1}=await S.sb.from("invites").insert({email,full_name,role,team_id}); if(e1) throw e1;
+  const c=cfg(); const tmp=window.supabase.createClient(c.url,c.key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:"hf-tmp-"+Date.now()}});
+  const {data,error}=await tmp.auth.signUp({email,password,options:{data:{full_name}}});
+  if(error){ if(/already registered/i.test(error.message)) throw new Error("هاد الإيميل عندو حساب ديجا. إلا كان حساب بلا دور، تقدر تفعلو من «حسابات بلا إيكيب»."); throw error }
+  if(data&&data.user&&data.user.identities&&data.user.identities.length===0) throw new Error("هاد الإيميل عندو حساب ديجا");
+  await loadBase();
+  return !data.session; // true => confirmation email needed
+}
+function memberRow(p,tid){
+  const mTot=S.month.rows.filter(e=>e.tech_id===p.id).reduce((s,e)=>s+amtOf(e),0);
+  const canToggle=isAdmin()||(isChef()&&p.role==="tech");
+  return `<div class="item"><div class="avatar">${esc(initials(p.full_name||p.email))}</div>
+    <div class="grow"><b>${esc(p.full_name||"-")}</b> <span class="badge ${p.role==="chef"?"ok":"draft"}">${ROLE_AR[p.role]}</span><div class="hint ltr" style="text-align:right">${esc(p.email||"")}</div>
+    <div class="small">هاد الشهر: <b class="num ltr">${money(mTot)}</b>${p.active?"":' · <span style="color:var(--danger)">موقوف</span>'}</div></div>
+    ${isAdmin()?`<button class="btn sm" data-editp="${p.id}">تعديل</button>`:""}
+    ${canToggle&&p.id!==S.me.id?`<label class="switch" title="مفعّل"><input type="checkbox" data-active="${p.id}" ${p.active?"checked":""} aria-label="تفعيل ${esc(p.full_name||"")}"><span></span></label>`:""}
+  </div>`;
+}
+function invitesHtml(list){return list.length?`<div class="panel"><h3>دعوات فالانتظار</h3><p class="hint" style="margin-top:0">هاد الناس مازال ما دخلوش. يقدرو يصاوبو الحساب من «حساب جديد» بنفس الإيميل.</p>${list.map(i=>`<div class="item"><div class="grow"><b>${esc(i.full_name||"-")}</b> · ${ROLE_AR[i.role]}<div class="hint ltr" style="text-align:right">${esc(i.email)}</div></div><button class="btn sm danger" data-uninv="${esc(i.email)}">لغي</button></div>`).join("")}</div>`:""}
+function renderTeam(){
+  let h="";
+  if(isChef()){
+    const t=teamById(S.me.team_id), ms=S.profiles.filter(p=>p.team_id===t.id);
+    h=`<div class="panel-head"><h2 style="margin:6px 2px">${esc(t.name)}</h2><button class="btn accent sm" data-addmember="${t.id}" data-role="tech">+ تقني جديد</button></div>
+      <div class="panel">${ms.map(p=>memberRow(p,t.id)).join("")||'<p class="hint">ما كاين حتى عضو.</p>'}</div>${invitesHtml(S.invites.filter(i=>i.team_id===t.id))}`;
+  }else{
+    const orphans=S.profiles.filter(p=>p.role==="none"||(!p.team_id&&p.role!=="admin"));
+    h=`<div class="panel-head"><h2 style="margin:6px 2px">الإيكيبات (${S.teams.length})</h2><button class="btn accent sm" id="addTeam">+ إيكيب جديدة</button></div>`;
+    if(!S.teams.length) h+=`<div class="empty">بدا بزيادة أول إيكيب، من بعد زيد الشاف ديالها.</div>`;
+    S.teams.forEach(t=>{const ms=S.profiles.filter(p=>p.team_id===t.id), mTot=S.month.rows.filter(e=>e.team_id===t.id).reduce((s,e)=>s+amtOf(e),0);
+      const chefs=ms.filter(p=>p.role==="chef").map(p=>p.full_name).join("، ");
+      h+=`<details class="panel"><summary class="row" style="cursor:pointer;list-style:none">${t.logo_url?`<img class="team-logo" src="${esc(t.logo_url)}" alt="">`:`<div class="avatar" style="width:44px;height:44px;border-radius:10px">${esc(initials(t.name))}</div>`}
+        <div class="grow"><b>${esc(t.name)}</b><div class="hint">${chefs?"الشاف: "+esc(chefs):"بلا شاف"} · ${ms.length} عضو${t.zone?" · "+esc(t.zone):""}</div></div><b class="num ltr small">${money(mTot)}</b></summary>
+        <div style="margin-top:10px">${ms.map(p=>memberRow(p,t.id)).join("")||'<p class="hint">ما كاين حتى عضو.</p>'}</div>
+        <div class="row wrap" style="margin-top:10px"><button class="btn sm accent" data-addmember="${t.id}" data-role="chef">+ شاف</button><button class="btn sm" data-addmember="${t.id}" data-role="tech">+ تقني</button><button class="btn sm" data-editteam="${t.id}">تعديل الإيكيب</button><button class="btn sm" data-gocps="${t.id}">CPS واللوغو</button></div>
+      </details>`});
+    if(orphans.length) h+=`<div class="panel"><h3>حسابات بلا إيكيب</h3><p class="hint" style="margin-top:0">ناس صاوبو حساب بلا دعوة. عطيهم دور وإيكيب باش يدخلو.</p>${orphans.map(p=>`<div class="item"><div class="avatar">${esc(initials(p.full_name||p.email))}</div><div class="grow"><b>${esc(p.full_name||"-")}</b><div class="hint ltr" style="text-align:right">${esc(p.email)}</div></div><button class="btn sm" data-editp="${p.id}">تعيين</button></div>`).join("")}</div>`;
+    h+=invitesHtml(S.invites);
+  }
+  $("#v-team").innerHTML=h;
+}
+function openAddMember(tid,role){
+  const t=teamById(tid);
+  modal(`<form><h3>${role==="chef"?"شاف جديد":"تقني جديد"} · ${esc(t.name)}</h3>
+    <label class="f" for="mN">الاسم الكامل (بالحروف اللاتينية)</label><input class="in" id="mN" name="full_name" required>
+    <label class="f" for="mE">الإيميل</label><input class="in ltr" id="mE" name="email" type="email" required autocomplete="off">
+    <label class="f" for="mP">كلمة السر (عطيها ليه باش يدخل)</label><input class="in ltr" id="mP" name="password" type="text" minlength="6" required autocomplete="off" value="${Math.random().toString(36).slice(2,6)}${Math.floor(1000+Math.random()*9000)}">
+    ${isAdmin()?`<label class="f" for="mR">الدور</label><select class="in" id="mR" name="role"><option value="chef" ${role==="chef"?"selected":""}>شاف إيكيب</option><option value="tech" ${role==="tech"?"selected":""}>تقني</option></select>`:`<input type="hidden" name="role" value="tech">`}
+    <div class="err" hidden></div>
+    <div class="row" style="margin-top:14px"><button type="button" class="btn grow" data-close>إلغاء</button><button type="submit" class="btn primary grow">إنشاء الحساب</button></div></form>`,
+  async fd=>{const o=Object.fromEntries(fd);const conf=await createAccount({...o,team_id:tid});
+    renderTeam();
+    showCreds(o.email,o.password,conf);
+  });
+}
+function showCreds(email,pass,conf){
+  setTimeout(()=>{modal(`<h3>تصاوب الحساب ✓</h3><p class="hint">صيفط هاد المعلومات للشخص باش يدخل للتطبيق:</p>
+   <div class="panel ltr" style="text-align:left"><div>Email : <b>${esc(email)}</b></div><div>Mot de passe : <b>${esc(pass)}</b></div><div class="small">${esc(location.href.split("#")[0])}</div></div>
+   ${conf?'<p class="warn">Supabase باقي كيطلب تأكيد الإيميل: خاص الشخص يفتح الرسالة اللي جاتو ويأكد قبل ما يدخل. (تقدر توقف هادشي من Supabase › Authentication › Sign In / Providers › Email › Confirm email)</p>':""}
+   <div class="row"><button class="btn grow" id="copyCreds">نسخ</button><button class="btn primary grow" data-close>مزيان</button></div>`);
+   $("#copyCreds").onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(`Hisab FTTH\n${location.href.split("#")[0]}\nEmail : ${email}\nMot de passe : ${pass}`).then(()=>toast("تنسخ"))}},60);
+}
+function openTeamForm(t){
+  modal(`<form><h3>${t?"تعديل الإيكيب":"إيكيب جديدة"}</h3>
+    <label class="f" for="tN">اسم الإيكيب</label><input class="in" id="tN" name="name" required value="${esc(t?t.name:"")}">
+    <label class="f" for="tZ">المنطقة</label><input class="in" id="tZ" name="zone" value="${esc(t?t.zone||"":"")}">
+    <label class="f" for="tC">اسم الشركة فالرابور (اختياري)</label><input class="in" id="tC" name="company" value="${esc(t?t.company||"":"")}">
+    <div class="err" hidden></div>
+    <div class="row" style="margin-top:14px">${t&&isAdmin()?`<button type="button" class="btn danger" id="delTeam">حذف</button>`:""}<button type="button" class="btn grow" data-close>إلغاء</button><button type="submit" class="btn primary grow">حفظ</button></div></form>`,
+  async fd=>{const o=Object.fromEntries(fd);
+    const r=t?await S.sb.from("teams").update(o).eq("id",t.id):await S.sb.from("teams").insert(o);
+    if(r.error) throw r.error; await loadBase(); renderHeader(); show(S.view,true); toast("تحفظت الإيكيب")});
+  const d=$("#delTeam"); if(d) d.onclick=async()=>{
+    if(!d.dataset.armed){d.dataset.armed="1";d.textContent="أكد الحذف (كيتحذفو حتى الطلبيات ديالها)";return}
+    const {error}=await S.sb.from("teams").delete().eq("id",t.id); if(error){toast(errMsg(error));return}
+    closeModal();await refreshAll();toast("تحذفت الإيكيب")};
+}
+function openProfileForm(p){
+  modal(`<form><h3>${esc(p.full_name||p.email)}</h3><p class="hint ltr" style="text-align:right;margin:0">${esc(p.email)}</p>
+    <label class="f" for="pN">الاسم</label><input class="in" id="pN" name="full_name" value="${esc(p.full_name||"")}">
+    <label class="f" for="pR">الدور</label><select class="in" id="pR" name="role">${["chef","tech","admin","none"].map(r=>`<option value="${r}" ${p.role===r?"selected":""}>${ROLE_AR[r]}</option>`).join("")}</select>
+    <label class="f" for="pT">الإيكيب</label><select class="in" id="pT" name="team_id"><option value="">بلا إيكيب</option>${teamOptions(p.team_id)}</select>
+    <div class="row" style="margin-top:12px"><label class="switch"><input type="checkbox" name="active" id="pA" ${p.active?"checked":""}><span></span></label><label for="pA">الحساب مفعّل</label></div>
+    <div class="err" hidden></div>
+    <div class="row" style="margin-top:14px"><button type="button" class="btn grow" data-close>إلغاء</button><button type="submit" class="btn primary grow">حفظ</button></div></form>`,
+  async fd=>{const o={full_name:fd.get("full_name"),role:fd.get("role"),team_id:fd.get("team_id")||null,active:fd.get("active")==="on"};
+    if(o.role==="admin")o.team_id=null;
+    if((o.role==="chef"||o.role==="tech")&&!o.team_id) throw new Error("الشاف والتقني خاصهم إيكيب");
+    if(p.id===S.me.id&&o.role!=="admin") throw new Error("ما تقدرش تحيد على راسك دور المدير");
+    const {error}=await S.sb.from("profiles").update(o).eq("id",p.id); if(error) throw error;
+    await loadBase(); renderTeam(); toast("تحفظ")});
+}
+
+/* ---------------- SETTINGS (account + team CPS/logo) ---------------- */
+function renderSettings(){
+  const tid=isAdmin()?(S.setTeam||(S.teams[0]&&S.teams[0].id)):S.me.team_id; S.setTeam=tid;
+  const t=teamById(tid), canEditTeam=isAdmin()||isChef();
+  let h=`<h2>${isTech()?"حسابي":"الإعدادات"}</h2>
+  <div class="panel"><h3>الحساب</h3>
+    <div class="row"><div class="avatar">${esc(initials(S.me.full_name||S.me.email))}</div><div class="grow"><b>${esc(S.me.full_name||"")}</b><div class="hint ltr" style="text-align:right">${esc(S.me.email||"")}</div></div></div>
+    <label class="f" for="myName">الاسم (بالحروف اللاتينية، كيبان فالرابور)</label><div class="row"><input class="in grow" id="myName" value="${esc(S.me.full_name||"")}"><button class="btn" id="saveName">حفظ</button></div>
+    <label class="f">لغة العمليات</label><div class="toggle2 lang"><button data-lang="ar">عربية</button><button data-lang="fr">Français</button></div>
+    <div class="row wrap" style="margin-top:14px"><button class="btn grow" id="chPass">بدل كلمة السر</button><button class="btn danger grow" data-logout>خروج</button></div>
+  </div>`;
+  if(canEditTeam&&t){
+    const ops=cpsFor(tid), changed=ops.filter(o=>!o.custom&&(o.price!==o.base||o.hidden)).length;
+    h+=`${isAdmin()?`<label class="f" for="setTeamSel">الإيكيب اللي غادي تبدل</label><select class="in" id="setTeamSel" style="margin-bottom:12px">${teamOptions(tid)}</select>`:""}
+    <div class="panel"><div class="panel-head"><h3 style="margin:0">${esc(t.name)}</h3><button class="btn sm" data-editteam="${t.id}">تعديل المعلومات</button></div>
+      <div class="logo-box">${t.logo_url?`<img src="${esc(t.logo_url)}" alt="اللوغو">`:'<div class="ph">بلا لوغو</div>'}
+      <div class="grow"><b>اللوغو ديال الرابور</b><p class="hint" style="margin:2px 0 8px">PNG ولا JPG. كيبان فالفوق ديال كل رابور PDF.</p>
+      <div class="row wrap"><button class="btn sm primary" id="upLogo">${t.logo_url?"بدل اللوغو":"حمّل اللوغو"}</button>${t.logo_url?'<button class="btn sm danger" id="rmLogo">حيد</button>':""}</div>
+      <input type="file" id="logoFile" accept="image/png,image/jpeg,image/webp" hidden></div></div>
+      <div class="hint" style="margin-top:10px">${t.zone?"المنطقة: "+esc(t.zone)+" · ":""}${t.company?"الشركة: "+esc(t.company):""}</div>
+    </div>
+    <div class="panel"><div class="panel-head"><h3 style="margin:0">CPS ديال الإيكيب</h3><button class="btn sm accent" id="addOp">+ عملية</button></div>
+      <p class="hint" style="margin:0">بدل الثمن، ولا خبّي العملية بالعين إلا ما كتستعملهاش. ${changed?`<b>${changed}</b> عملية مبدلة.`:""} التبديل كيطبق غير على الطلبيات الجديدة.</p>
+      <input class="in" id="cpsSearch" placeholder="قلّب…" style="margin-top:10px">
+      <div id="cpsList"></div>
+      ${changed?'<button class="btn sm" id="resetCps" style="margin-top:10px">رجع كاع الأثمنة الأصلية</button>':""}
+    </div>`;
+  }
+  $("#v-settings").innerHTML=h;
+  document.querySelectorAll(".toggle2.lang button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===S.lang));
+  if(canEditTeam&&t) drawCps();
+}
+const EYE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYE_OFF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7a9.6 9.6 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+function drawCps(){
+  const tid=S.setTeam, q=($("#cpsSearch")&&$("#cpsSearch").value.trim().toLowerCase())||"";
+  const ops=cpsFor(tid).filter(o=>!q||(o.code+" "+o.label_fr+" "+o.label_ar+" "+o.desig).toLowerCase().includes(q));
+  $("#cpsList").innerHTML=GROUP_ORDER.map(g=>{const os=ops.filter(o=>o.grp===g);if(!os.length)return "";
+    return `<div class="group-title">${GROUPS[g][S.lang==="fr"?0:1]}</div>`+os.map(o=>`<div class="price-row ${o.hidden?"off":""}">
+      <div class="d" ${TD()}><b class="ltr">${esc(o.code)}</b> ${esc(opLabel(o))}${o.custom?' <span class="badge ok">مضافة</span>':""}<small>${esc(S.lang==="fr"?o.desig:o.desig_ar)} · ${unitAr(o.unit)}${!o.custom&&o.price!==o.base?` · <span class="ltr">الأصلي ${fmt(o.base)}</span>`:""}</small></div>
+      <input type="number" inputmode="decimal" step="0.01" min="0" data-price="${esc(o.code)}" value="${o.price}" class="${!o.custom&&o.price!==o.base?"changed":""}" aria-label="ثمن ${esc(o.code)}">
+      ${o.custom?`<button class="eye" data-delop="${esc(o.code)}" aria-label="حذف ${esc(o.code)}" title="حذف">×</button>`:`<button class="eye" data-hide="${esc(o.code)}" aria-label="${o.hidden?"ظهّر":"خبّي"} ${esc(o.code)}" title="${o.hidden?"ظهّر":"خبّي"}">${o.hidden?EYE_OFF:EYE}</button>`}
+    </div>`).join("")}).join("")||'<p class="hint">ما لقيت والو.</p>';
+}
+async function upsertCps(code,patch){
+  const tid=S.setTeam, base=BASE_BY[code], cur=S.cpsRows.find(r=>r.team_id===tid&&r.code===code);
+  const row={team_id:tid,code,...(cur?{grp:cur.grp,label_fr:cur.label_fr,label_ar:cur.label_ar,unit:cur.unit,price:cur.price,hidden:cur.hidden,is_custom:cur.is_custom}:{price:null,hidden:false,is_custom:false}),...patch};
+  if(base&&row.price!=null&&+row.price===base.price) row.price=null;
+  let r;
+  if(base&&row.price==null&&!row.hidden) r=await S.sb.from("team_cps").delete().eq("team_id",tid).eq("code",code);
+  else r=await S.sb.from("team_cps").upsert(row);
+  if(r.error){toast(errMsg(r.error));return false}
+  const {data}=await S.sb.from("team_cps").select("*"); if(data) S.cpsRows=data;
+  return true;
+}
+function openOpForm(){
+  modal(`<form><h3>عملية جديدة فـ CPS</h3>
+    <div class="two"><div><label class="f" for="oC">الكود</label><input class="in ltr" id="oC" name="code" required maxlength="16" placeholder="X1"></div>
+    <div><label class="f" for="oU">الوحدة</label><select class="in" id="oU" name="unit"><option value="U">وحدة (U)</option><option value="ml">متر (ml)</option><option value="km">كلم (km)</option></select></div></div>
+    <label class="f" for="oF">الاسم بالفرنسية (كيبان فالرابور)</label><input class="in ltr" id="oF" name="label_fr" required>
+    <label class="f" for="oA">الاسم بالعربية</label><input class="in" id="oA" name="label_ar">
+    <div class="two"><div><label class="f" for="oP">الثمن (DH)</label><input class="in ltr" id="oP" name="price" type="number" step="0.01" min="0" required></div>
+    <div><label class="f" for="oG">المجموعة</label><select class="in" id="oG" name="grp">${GROUP_ORDER.map(g=>`<option value="${g}" ${g==="AUTRE"?"selected":""}>${GROUPS[g][1]}</option>`).join("")}</select></div></div>
+    <div class="err" hidden></div>
+    <div class="row" style="margin-top:14px"><button type="button" class="btn grow" data-close>إلغاء</button><button type="submit" class="btn primary grow">زيد</button></div></form>`,
+  async fd=>{const o=Object.fromEntries(fd); o.code=o.code.trim().toUpperCase();
+    if(BASE_BY[o.code]||S.cpsRows.find(r=>r.team_id===S.setTeam&&r.code===o.code)) throw new Error("هاد الكود ديجا كاين");
+    const ok=await upsertCps(o.code,{...o,price:+o.price,is_custom:true,hidden:false}); if(!ok) throw new Error("ما تحفظاتش");
+    drawCps(); toast("تزادت العملية "+o.code)});
+}
+async function uploadLogo(file){
+  const t=teamById(S.setTeam); if(!file) return;
+  toast("كيتحمل اللوغو…");
+  try{
+    const img=await new Promise((ok,ko)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=()=>ko(new Error("الصورة ما تقراتش"));i.src=URL.createObjectURL(file)});
+    const sc=Math.min(1,500/Math.max(img.naturalWidth,img.naturalHeight)), c=document.createElement("canvas");
+    c.width=Math.round(img.naturalWidth*sc);c.height=Math.round(img.naturalHeight*sc);c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+    const blob=await new Promise(ok=>c.toBlob(ok,"image/png"));
+    const path=`${t.id}/logo-${Date.now()}.png`;
+    const up=await S.sb.storage.from("logos").upload(path,blob,{contentType:"image/png",upsert:true}); if(up.error) throw up.error;
+    const url=S.sb.storage.from("logos").getPublicUrl(path).data.publicUrl;
+    const old=t.logo_url&&t.logo_url.split("/logos/")[1];
+    const {error}=await S.sb.from("teams").update({logo_url:url}).eq("id",t.id); if(error) throw error;
+    if(old) S.sb.storage.from("logos").remove([decodeURIComponent(old)]);
+    await loadBase(); renderHeader(); renderSettings(); toast("تحفظ اللوغو");
+  }catch(e){toast(errMsg(e))}
+}
+
+/* ---------------- EVENTS ---------------- */
+$("#tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(b)show(b.dataset.v)});
+document.addEventListener("click",async e=>{
+  const g=s=>e.target.closest(s);
+  let b;
+  if(g("[data-logout]")){await S.sb.auth.signOut();return}
+  if(g("#newBtn")){openEditor(null);return}
+  if(b=g("[data-edit]")){openEditor(findEntry(b.dataset.edit));return}
+  if(b=g("[data-dup]")){openEditor(findEntry(b.dataset.dup),true);return}
+  if(b=g("[data-val]")){setStatus([b.dataset.val],"validated");return}
+  if(b=g("[data-unval]")){setStatus([b.dataset.unval],"draft");return}
+  if(b=g("[data-restore]")){const {error}=await S.sb.from("entries").update({deleted_at:null}).eq("id",b.dataset.restore);if(error)toast(errMsg(error));else{toast("رجعات الطلبية");refreshAll()}return}
+  if(b=g("[data-purge]")){if(!b.dataset.armed){b.dataset.armed="1";b.textContent="أكد الحذف النهائي";return}
+    const {error}=await S.sb.from("entries").delete().eq("id",b.dataset.purge);if(error)toast(errMsg(error));else{toast("تحذفت نهائياً");loadHistory()}return}
+  if(g("#trashT")){S.hist.trash=!S.hist.trash;renderHistory();return}
+  if(g("#bulkVal")){const ids=S.hist.rows.filter(x=>x.status!=="validated"&&(!S.hist.type||x.type===S.hist.type)).map(x=>x.id);if(ids.length)setStatus(ids,"validated");return}
+  if(b=g("[data-p]")){setPreset(b.dataset.p);return}
+  if(g("#pdfBtn")){makePdf();return} if(g("#csvBtn")){makeCsv();return}
+  if(g("#addTeam")){openTeamForm(null);return}
+  if(b=g("[data-editteam]")){openTeamForm(teamById(b.dataset.editteam));return}
+  if(b=g("[data-addmember]")){openAddMember(b.dataset.addmember,b.dataset.role);return}
+  if(b=g("[data-editp]")){openProfileForm(profById(b.dataset.editp));return}
+  if(b=g("[data-gocps]")){S.setTeam=b.dataset.gocps;show("settings");return}
+  if(b=g("[data-uninv]")){const {error}=await S.sb.from("invites").delete().eq("email",b.dataset.uninv);if(error)toast(errMsg(error));else{await loadBase();renderTeam()}return}
+  if(b=g(".toggle2.lang button")){S.lang=b.dataset.lang;ls.set("hf.lang",S.lang);document.querySelectorAll(".toggle2.lang button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.lang===S.lang));
+    if(D)renderDraft(); if(S.view==="settings")drawCps(); else show(S.view,true); return}
+  if(b=g("[data-hide]")){const o=cpsFor(S.setTeam).find(x=>x.code===b.dataset.hide);if(await upsertCps(o.code,{hidden:!o.hidden}))drawCps();return}
+  if(b=g("[data-delop]")){if(!b.dataset.armed){b.dataset.armed="1";b.textContent="؟";toast("ضغط مرة أخرى باش تحذف العملية");return}
+    const {error}=await S.sb.from("team_cps").delete().eq("team_id",S.setTeam).eq("code",b.dataset.delop);if(error){toast(errMsg(error));return}
+    S.cpsRows=S.cpsRows.filter(r=>!(r.team_id===S.setTeam&&r.code===b.dataset.delop));drawCps();return}
+  if(g("#addOp")){openOpForm();return}
+  if(g("#resetCps")){const {error}=await S.sb.from("team_cps").delete().eq("team_id",S.setTeam).eq("is_custom",false);if(error){toast(errMsg(error));return}
+    S.cpsRows=S.cpsRows.filter(r=>!(r.team_id===S.setTeam&&!r.is_custom));renderSettings();toast("رجعو الأثمنة الأصلية");return}
+  if(g("#upLogo")){$("#logoFile").click();return}
+  if(g("#rmLogo")){const t=teamById(S.setTeam);const {error}=await S.sb.from("teams").update({logo_url:null}).eq("id",t.id);if(error){toast(errMsg(error));return}
+    const p=t.logo_url&&t.logo_url.split("/logos/")[1]; if(p) S.sb.storage.from("logos").remove([decodeURIComponent(p)]);
+    await loadBase();renderHeader();renderSettings();return}
+  if(g("#saveName")){const v=$("#myName").value.trim();const {error}=await S.sb.from("profiles").update({full_name:v}).eq("id",S.me.id);if(error){toast(errMsg(error));return}S.me.full_name=v;await loadBase();renderHeader();toast("تحفظ الاسم");return}
+  if(g("#chPass")){modal(`<form><h3>كلمة سر جديدة</h3><input class="in ltr" name="p" type="password" minlength="6" required autocomplete="new-password" placeholder="6 حروف على الأقل"><div class="err" hidden></div>
+    <div class="row" style="margin-top:14px"><button type="button" class="btn grow" data-close>إلغاء</button><button type="submit" class="btn primary grow">حفظ</button></div></form>`,
+    async fd=>{const {error}=await S.sb.auth.updateUser({password:fd.get("p")});if(error)throw error;toast("تبدلات كلمة السر")});return}
+});
+document.addEventListener("change",e=>{
+  const id=e.target.id, v=e.target.value, H=S.hist;
+  if(id==="hM"){H.ym=v||today().slice(0,7);loadHistory()}
+  else if(id==="hType"){H.type=v;drawHistory()}
+  else if(id==="hTeam"){H.team=v;H.tech="";renderHistory()}
+  else if(id==="hTech"){H.tech=v;loadHistory()}
+  else if(id==="hStatus"){H.status=v;loadHistory()}
+  else if(id==="rFrom"){S.rep.from=v;loadReport()} else if(id==="rTo"){S.rep.to=v;loadReport()}
+  else if(id==="rTeam"){S.rep.team=v;S.rep.tech="";renderReport()} else if(id==="rTech"){S.rep.tech=v;loadReport()}
+  else if(id==="rValid"){S.rep.onlyValid=e.target.checked;loadReport()}
+  else if(id==="rChef"){S.rep.chef=v.trim();ls.set("hf.chef",S.rep.chef);if(REP)drawReport()}
+  else if(id==="setTeamSel"){S.setTeam=v;renderSettings()}
+  else if(id==="logoFile"){uploadLogo(e.target.files[0]);e.target.value=""}
+  else if(e.target.dataset.price){const code=e.target.dataset.price,val=String(v).replace(",",".");
+    if(val===""||isNaN(+val)||+val<0){toast("ثمن ماشي صحيح");drawCps();return}
+    const o=cpsFor(S.setTeam).find(x=>x.code===code);
+    upsertCps(code,{price:+val}).then(ok=>{if(ok){drawCps();toast("تبدل ثمن "+code)}})}
+  else if(e.target.dataset.active){const pid=e.target.dataset.active,on=e.target.checked;
+    S.sb.from("profiles").update({active:on}).eq("id",pid).then(async({error})=>{if(error){toast(errMsg(error));e.target.checked=!on;return}await loadBase();toast(on?"تفعّل الحساب":"توقف الحساب")})}
+});
+document.addEventListener("input",e=>{if(e.target.id==="cpsSearch")drawCps()});
+function findEntry(id){return S.today.concat(S.month.rows,S.hist.rows).find(x=>x.id===id)}
+
+/* editor events */
+$("#closeSheet").onclick=closeEditor; $("#saveBtn").onclick=saveDraft; $("#delBtn").onclick=trashEntry;
+$("#eRef").addEventListener("input",checkDup);
+$("#eTeam").addEventListener("change",e=>{D.team_id=e.target.value;D.tech_id="";D.lines=[];fillTech();renderDraft();checkDup()});
+$("#eTech").addEventListener("change",e=>{D.tech_id=e.target.value});
+$("#typeSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(b&&!readOnly){D.type=b.dataset.t;renderDraft()}});
+$("#sheet").addEventListener("click",e=>{
+  if(readOnly) return; let b;
+  if(b=e.target.closest("[data-add]")){addLine(b.dataset.add);$("#search").value="";$("#results").hidden=true;return}
+  if(b=e.target.closest("[data-rm]")){D.lines.splice(+b.dataset.rm,1);renderDraft();return}
+  if(b=e.target.closest("[data-inc]")){const l=D.lines[+b.dataset.inc];l.qty=Math.round((+l.qty+1)*100)/100;renderDraft();return}
+  if(b=e.target.closest("[data-dec]")){const l=D.lines[+b.dataset.dec];l.qty=Math.max(0,Math.round((+l.qty-1)*100)/100);renderDraft();return}
+});
+$("#lines").addEventListener("input",e=>{
+  const q=e.target.closest("[data-q]"); if(!q)return; const l=D.lines[+q.dataset.q]; l.qty=Math.max(0,+String(q.value).replace(",",".")||0);
+  q.closest(".line").querySelector(".line-calc").innerHTML=`<span class="ltr">${qtyFmt(l.qty)} ${unitAr(l.unit)} × ${fmt(l.pu)}</span><b class="num ltr">${money(lineAmt(l))}</b>`;
+  $("#draftTotal").textContent=money(linesAmt(D.lines));
+});
+$("#search").addEventListener("input",e=>{
+  const q=e.target.value.trim().toLowerCase(), r=$("#results"); if(!q){r.hidden=true;return}
+  const hits=cpsFor(D.team_id).filter(o=>!o.hidden&&(o.code+" "+o.label_fr+" "+o.desig+" "+o.label_ar+" "+o.desig_ar).toLowerCase().includes(q)).slice(0,12);
+  r.hidden=false;
+  r.innerHTML=hits.length?hits.map(o=>`<button data-add="${esc(o.code)}" ${TD()}><b class="ltr">${esc(o.code)}</b> ${esc(opLabel(o))}<br><small class="muted"><span class="ltr">${fmt(o.price)} DH</span> / ${unitAr(o.unit)}</small></button>`).join(""):`<div class="hint" style="padding:10px 12px">ما لقيت والو.</div>`;
+});
+
+/* auth events */
+document.querySelector("#authMode").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setAuthMode(b.dataset.m)});
+$("#aGo").onclick=async()=>{
+  const em=$("#aEmail").value.trim(), pw=$("#aPass").value, er=$("#aErr"); er.hidden=true; const b=$("#aGo"); b.disabled=true;
+  try{
+    if(authMode==="up"){
+      const {data,error}=await S.sb.auth.signUp({email:em,password:pw,options:{data:{full_name:$("#aName").value.trim()},emailRedirectTo:location.href.split("#")[0]}});
+      if(error) throw error;
+      if(!data.session){er.textContent="تصاوب الحساب. حل الإيميل ديالك وأكد الحساب، من بعد دخل.";er.style.color="var(--ok)";er.hidden=false;setAuthMode("in");return}
+      S.user=data.user; await enter();
+    }else{
+      const {data,error}=await S.sb.auth.signInWithPassword({email:em,password:pw}); if(error) throw error;
+      S.user=data.user; await enter();
+    }
+  }catch(e){er.style.color="";er.textContent=errMsg(e);er.hidden=false}finally{b.disabled=false}
+};
+$("#aPass").addEventListener("keydown",e=>{if(e.key==="Enter")$("#aGo").click()});
+$("#forgot").onclick=async()=>{const em=$("#aEmail").value.trim(), er=$("#aErr");
+  if(!em){er.textContent="كتب الإيميل ديالك الفوق أولا";er.hidden=false;return}
+  const {error}=await S.sb.auth.resetPasswordForEmail(em,{redirectTo:location.href.split("#")[0]});
+  er.style.color=error?"":"var(--ok)"; er.textContent=error?errMsg(error):"صيفطنا ليك رسالة فالإيميل باش تبدل كلمة السر."; er.hidden=false};
+$("#npGo").onclick=async()=>{const {error}=await S.sb.auth.updateUser({password:$("#np1").value});
+  if(error){$("#npErr").textContent=errMsg(error);$("#npErr").hidden=false;return}
+  history.replaceState(null,"",location.pathname+location.search);toast("تبدلات كلمة السر");const {data}=await S.sb.auth.getUser();S.user=data.user;enter()};
+$("#waitRetry").onclick=()=>enter();
+$("#cfgSave").onclick=async()=>{
+  const url=$("#cfgUrl").value.trim().replace(/\/+$/,""), key=$("#cfgKey").value.trim(), er=$("#cfgErr"); er.hidden=true;
+  if(!/^https:\/\/[^/]+$/.test(url)||key.length<20){er.textContent="تأكد من الـ URL والمفتاح";er.hidden=false;return}
+  try{const p=JSON.parse(atob(key.split(".")[1]||""));if(p.role==="service_role"){er.textContent="هادا هو المفتاح السري service_role! ما تستعملوش هنا أبداً. خود المفتاح anon / publishable.";er.hidden=false;return}}catch(e){}
+  if(/^sb_secret_/.test(key)){er.textContent="هادا مفتاح سري (secret)! خود المفتاح publishable / anon.";er.hidden=false;return}
+  ls.set("hf.cfg",{url,key}); location.reload();
+};
+
+boot().catch(e=>{console.error(e);showAuth(cfg()?"loginBox":"setupBox");toast(errMsg(e))});
+</script>
+</body>
+</html>
